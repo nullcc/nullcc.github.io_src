@@ -130,4 +130,84 @@ move_obj(){
 
 Lisp2算法的优点是相比GC复制算法，堆的空间利用率提高了，因为不再需要区分`from`空间和`to`空间，压缩带来的好处是堆的已使用空间更加紧凑，内存分配效率高。
 
-Lisp2算法的缺点也很明显，需要遍历四次堆：标记阶段一次、更新forwarding指针阶段一次、更新对象指针阶段一次、移动对象阶段一次。堆越大，该算法的成本越高，吞吐率也会下降。
+Lisp2算法的缺点也很明显，需要遍历四次堆：标记阶段一次、更新forwarding指针阶段一次、更新对象指针阶段一次、移动对象阶段一次。堆越大，该算法的成本越高，吞吐率也会下降。另外在Lisp2算法中每个对象都要有一个forwarding指针，不管对象有多大这个空间消耗都是固定的。
+
+## Two-Finger算法
+
+有人提出了一种叫Two-Finger的算法，这个算法的特点是所有对象的大小必须一致，在这种算法中也有forwarding指针，但不需要为每个对象专门准备forwarding指针，因为可以使用原对象的某个域充当forwarding指针。这个算法相比Lisp2算法的优势是只需要遍历两次堆，因此吞吐率比较高。
+
+Two-Finger算法分为两个步骤：
+
+1. 移动对象
+2. 更新对象指针
+
+刚才提到在Two-Finger算法中每个对象的大小必须一致，因此可以将活跃对象移动到非活跃对象的空间中，GC之后所有活跃对象就会集中在堆的一侧，空闲空间在另一侧。
+
+![Two-Finger算法示例](/assets/images/post_imgs/gc_43.png)
+
+如上图所示，从堆的末尾向前寻找活跃对象，将其填充到前面的非活跃对象空间内。
+
+### 阶段一——移动对象
+
+由于所有对象的大小都是一样的，假设这个大小为`OBJ_SIZE`，有一个`$free`指针从`$heap_start`开始，一个`live`指针从堆中最后一个对象处(`$heap_end` - OBJ_SIZE)开始。`$free`指针负责查找非活跃对象，`live`指针寻找活跃对象，并将其移动到`$free`指针指向的空间。另外需要在`live`指针指向的每个原对象处设置一个`forwarding`指针，将其指向移动后的那个对象。
+
+伪代码如下：
+
+```Java
+move_obj(){
+    $free = $heap_start
+    live = $heap_end - OBJ_SIZE
+    while(TRUE){
+        while($free.mark == TRUE)  // 直到找到一个非活跃对象为止
+            $free += OBJ_SIZE
+        while(live.mark == FALSE)  // 直到找到一个活跃对象为止
+            live -= OBJ_SIZE
+        if($free < live){
+            copy_data($free, live, OBJ_SIZE)
+            live.forwarding = $free
+            live.mark = FALSE
+        } else {
+            break
+        }
+    }
+}
+```
+
+### 阶段二——更新对象指针
+
+对象移动完毕后，堆中地址位于`$free`指针之前的对象应该都是活跃对象了，`$free`指针之后的对象则有两种可能：
+
+1. 非活跃对象
+2. 已经被移动的对象
+
+非活跃对象我们已不关心，这里需要关注`已经被移动的对象`。
+
+有了上面的信息我们就有一个判断准则：如果一个活跃对象（或其子对象）的地址位于`$free`之后，它已经已经被移动到了`$free`之前的某个位置，这个位置保存在这个对象的`forwarding`指针内。此时我们必须更新这个对象和所有其子对象的指针。
+
+伪代码如下：
+
+```Java
+update_obj_ptr(){
+    for(obj in $root){
+        if(&obj >= $free){
+            obj = obj.forwarding
+        }
+    }
+    scan = $heap_start
+    while(scan < $free){
+        scan.mark = FALSE
+        for(child in scan.children){
+            if(&child >= $free){
+                child = child.forwarding
+            }
+        }
+        scan += OBJ_SIZE
+    }
+}
+```
+
+### 优点和缺点
+
+Two-Finger算法的优点是只需要遍历两次堆，效率较高，吞吐率也比Lisp2算法好，且不需要专门为每个用户维护一个forwarding指针，不浪费空间。
+
+Two-Finger算法的缺点也是相当明显的，它有一个明显的限制：所有对象大小必须一致，这是非常麻烦的一个限制，有一种缓解的方式是将堆分成几个部分吗，每个部分中的对象大小一致，然后各个部分使用Two-Finger算法做GC。另外一个问题是，Two-Finger算法移动对象时没有将有引用关系的对象放在同一个内存页内，导致无法利用高速缓存。
