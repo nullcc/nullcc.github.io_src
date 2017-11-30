@@ -9,4 +9,5 @@ hexo server
 ## deploy
 
 hexo g
+
 hexo d
