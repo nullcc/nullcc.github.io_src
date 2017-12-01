@@ -7,6 +7,8 @@ categories: 自动化部署
 
 生产环境中经常使用`supervisor`来管理和监控服务器进程，它可以把一个应用进程变成一个daemon，常驻后台运行，还能监控进程状态，重启、停止所管理的进程。supervisor是一个用Python写成的工具，但它不支持Python 3.x。因此真正在用它的时候，一般用Python 2.7（也是很多Linux发行版默认安装的Python版本）来启动supervisor。
 
+<!--more-->
+
 Ubuntu下直接执行下面的命令安装supervisor：
 
 ```shell

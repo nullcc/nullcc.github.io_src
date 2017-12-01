@@ -7,6 +7,8 @@ categories: 编程语言
 
 在Python中我们常用threading来处理多线程，我们先看一个例子：
 
+<!--more-->
+
 ```Python
 # 代码段1
 import threading

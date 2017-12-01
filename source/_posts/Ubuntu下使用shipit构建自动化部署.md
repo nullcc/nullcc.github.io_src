@@ -22,6 +22,8 @@ categories: 自动化部署
 
 可以安装最新版本的node。
 
+<!--more-->
+
 ## 安装shipit-deploy
 
 接下来安装shipit-deploy，执行：

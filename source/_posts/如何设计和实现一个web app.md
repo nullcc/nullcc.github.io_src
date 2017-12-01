@@ -9,6 +9,8 @@ categories: web前端
 
 web app其实不算是什么新鲜的东西，相比于传统的web和传统的app，web app这种web和app相结合的产物有的优点如下：
 
+<!--more-->
+
 1. 开发上web app更有便捷性，ios开发一上来需要安装一堆东西，android开发也差不多，另外web app的学习成本要比平台客户端开发要低些，至少你不用去招聘ios和android程序员。只要具备基础web开发能力的人都可以比较快上手。
 
 2. 部署方便，在很多情况下，部署一个单页web app只需要一个index.html页面文件作为容器和一个前端资源打包文件（一般叫bundle.js）即可，然后把index.html放在自己服务器项目路径下，在其中引入bundle.js，至于bundle.js则可以放在CDN上，更新web app就等于是上传并刷新CDN缓存。这样一来前端部署极其简单，基本上不需要SSH到服务器去更换文件，也可以避免自己的服务器传输比较耗费带宽的前端资源文件。

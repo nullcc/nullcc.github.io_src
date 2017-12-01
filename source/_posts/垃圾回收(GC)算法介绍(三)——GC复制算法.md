@@ -9,6 +9,8 @@ categories: 编程语言
 
 GC复制算法的基本思想是将一个堆分成两个大小完全相等的两个空间：`from`和`to`。在分配内存时，总是从`from`空间中分配，当`from`空间满无法分配时，将`from`空间中的所有活动对象都复制到`to`空间中，复制完毕后回收`from`空间中的所有对象，最后交换`from`空间和`to`空间，如此往复下去。
 
+<!--more-->
+
 ![GC复制算法概要](/assets/images/post_imgs/gc_11.png)
 
 将活跃对象从`from`复制到`to`中需要一个`copying`函数：

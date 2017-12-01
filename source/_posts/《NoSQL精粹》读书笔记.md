@@ -5,6 +5,10 @@ tags: [NoSQL]
 categories: 读书笔记
 ---
 
+本文是《NoSQL精粹》的读书笔记。
+
+<!--more-->
+
 NoSQL数据库数据模型的一般分类：
 
 1. 键值数据模型

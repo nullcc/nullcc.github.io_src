@@ -21,6 +21,8 @@ categories: 编程语言
     print(res)
 ```
 
+<!--more-->
+
 运行结果：
 
     In try

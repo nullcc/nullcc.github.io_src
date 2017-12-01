@@ -5,6 +5,10 @@ tags: [Python]
 categories: 编程语言
 ---
 
+Python中_x,\_\_x和\_\_x\_\_的区别很多人不甚了解，本文将做一个全面介绍。
+
+<!--more-->
+
 假设有一个类：
 
 ```python

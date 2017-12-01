@@ -7,6 +7,8 @@ categories: 编程语言
 
 Python中的generator(生成器)是一个很强大的概念，generator function(生成器函数)被调用后会返回一个生成器。需要注意的是，generator function在被调用时，并不会真正地执行，而是返回一个generator。要想执行这个generator，有两种方式：for循环或手动调用generator的next方法。
 
+<!--more-->
+
 下面的代码创建了一个generator function，这是一个计数器，参数n表示要计数器的最大值：
 
 ```Python

@@ -5,6 +5,10 @@ tags: [node]
 categories: 文档翻译
 ---
 
+本文翻译了[npm-scripts](https://docs.npmjs.com/misc/scripts)。
+
+<!--more-->
+
 ## 概述
 
 npm在package.json中支持脚本属性，有以下几种脚本：

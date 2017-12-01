@@ -7,6 +7,8 @@ categories: web后端
 
 LVS的全称是"Linux Virtual Server"，即Linux虚拟服务器，该项目项目于1998年由章文嵩博士创立。LVS实现了IP层的数据包转发和负载均衡，常被用来进行后端服务集群的虚拟化，对外提供一个统一的IP入口，使整个后端服务集群对外部用户完全透明，就好像是一个台服务器对外提供服务一样。另外使用LVS可以很方便地在后端服务器集群中增删服务节点来提供高可扩展性，LVS也提供健康检查来实现集群的高可用性。
 
+<!--more-->
+
 虚拟服务器的工作示意图（图片来自http://www.linuxvirtualserver.org/）：
 
 ![LVS_1](/assets/images/post_imgs/web_arch_lvs_1.png)

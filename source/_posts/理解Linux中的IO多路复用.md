@@ -11,6 +11,8 @@ categories: 系统编程
 2. poll
 3. epoll
 
+<!--more-->
+
 ## 1. select
 
 select的函数原型：

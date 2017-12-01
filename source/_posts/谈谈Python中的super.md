@@ -7,6 +7,8 @@ categories: 编程语言
 
 先来看一段Python代码：
 
+<!--more-->
+
 ```python
 class Base(object):
 

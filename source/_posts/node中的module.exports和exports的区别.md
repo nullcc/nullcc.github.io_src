@@ -6,6 +6,9 @@ categories: 编程语言
 ---
 
 对于做node.js开发的同学来说，肯定经常要与`module.exports`和`exports`这两个东西打交道，似乎在它们都可以用于导出模块。
+
+<!--more-->
+
 不过为何要设置两种方式来导出模块呢？我们就来研究一下`module.exports`和`exports`的关联和区别。
 
 我们先来看看在一个模块中，`module.exports`和`exports`的值分别是什么。

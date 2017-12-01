@@ -9,6 +9,8 @@ categories: web后端
 
 设想一个场景，有n个cache db，以key-value pair的形式存储数据，一个指定的key-value，我们首先对它的key计算哈希值，然后将这个哈希值对n取模，结果就是这个key-value被路由到的cache db。通过这种方式可以将所有的key-value pair路由到对应的cache db中。这个过程用伪代码表示为：
 
+<!--more-->
+
 ```Java
 route_cache_db(key, value, cache_dbs, n){
   key_hash = hash_func(key)

@@ -5,7 +5,9 @@ tags: [node]
 categories: 文档翻译
 ---
 
-[原文链接](https://docs.npmjs.com/files/package.json)
+本文翻译了[package.json](https://docs.npmjs.com/files/package.json)。
+
+<!--more-->
 
 ## 概述
 

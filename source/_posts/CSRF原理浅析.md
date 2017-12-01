@@ -5,6 +5,10 @@ tags: [CSRF, web前端攻防]
 categories: web前端
 ---
 
+简单介绍了CSRF的原理和防御方式。
+
+<!--more-->
+
 ## CSRF简介
 
 ### CSRF是什么

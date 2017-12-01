@@ -12,6 +12,8 @@ categories: web后端
 最新版本下载:  https://www.elastic.co/downloads/elasticsearch
 指定版本下载:  https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-[版本号].zip
 
+<!--more-->
+
 ## 安装
 
 ### 1. 安装ElasticSearch
