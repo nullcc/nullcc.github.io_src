@@ -1,5 +1,6 @@
 ---
 title: 关于
+comment: false
 ---
 
 ## 编程语言:
