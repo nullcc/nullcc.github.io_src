@@ -1,6 +1,8 @@
 ---
 title: Web后端系统架构漫谈(二)——一致性hash算法
 date: 2017-11-23
+tags: [后端架构]
+categories: web后端
 ---
 
 ## 一致性hash算法使用场景

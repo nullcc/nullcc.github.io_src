@@ -1,6 +1,8 @@
 ---
 title: (译)npm-scripts详解
 date: 2017-05-10
+tags: [node]
+categories: 文档翻译
 ---
 
 ## 概述

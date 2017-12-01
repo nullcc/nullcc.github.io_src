@@ -1,6 +1,8 @@
 ---
 title: 理解和使用keepalived（部署配置篇）
 date: 2017-08-15
+tags: [keepalived]
+categories: web后端
 ---
 
 ## keepalived的用处

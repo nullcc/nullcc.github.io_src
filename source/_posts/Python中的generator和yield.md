@@ -1,6 +1,8 @@
 ---
 title: Python中的generator和yield
 date: 2017-10-16
+tags: [Python]
+categories: 编程语言
 ---
 
 Python中的generator(生成器)是一个很强大的概念，generator function(生成器函数)被调用后会返回一个生成器。需要注意的是，generator function在被调用时，并不会真正地执行，而是返回一个generator。要想执行这个generator，有两种方式：for循环或手动调用generator的next方法。

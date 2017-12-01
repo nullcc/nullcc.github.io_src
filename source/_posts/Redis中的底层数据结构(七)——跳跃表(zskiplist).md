@@ -1,6 +1,8 @@
 ---
 title: Redis中的底层数据结构(七)——跳跃表(zskiplist)
 date: 2017-11-17
+tags: [Redis 数据结构]
+categories: 源码分析
 ---
 
 本文将详细说明Redis中跳跃表的实现。

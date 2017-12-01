@@ -1,6 +1,8 @@
 ---
 title: 谈谈Golang中goroutine的调度问题
 date: 2017-05-08
+tags: [go]
+categories: 编程语言
 ---
 
 goroutine的调度问题，同样也是我之前面试的问题，不过这个问题我当时并不是很清楚，回来以后立马查阅资料，现整理出来备忘。

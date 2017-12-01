@@ -1,6 +1,8 @@
 ---
-title: python中金额计算的小问题
+title: Python中金额计算的小问题
 date: 2017-05-10
+tags: [Python]
+categories: 编程语言
 ---
 
 由于二进制对浮点运算存在精度问题，所以一些浮点计算经常会出现以下情况：

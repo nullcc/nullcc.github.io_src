@@ -1,6 +1,8 @@
 ---
 title: (译)package.json详解
 date: 2017-05-10
+tags: [node]
+categories: 文档翻译
 ---
 
 [原文链接](https://docs.npmjs.com/files/package.json)

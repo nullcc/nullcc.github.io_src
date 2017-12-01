@@ -1,6 +1,8 @@
 ---
 title: Python中的魔术方法
 date: 2017-06-12
+tags: [Python]
+categories: 编程语言
 ---
 
 本文将详细描述Python中的魔术方法，这些方法是Python中很有意思也很重要的一部分内容，掌握它们可以让你对Python的面向对象特性有更深的理解，也会让你的Python技能更上一层楼。

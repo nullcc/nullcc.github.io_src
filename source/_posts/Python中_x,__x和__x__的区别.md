@@ -1,6 +1,8 @@
 ---
 title: Python中_x,__x和__x__的区别
 date: 2017-06-12
+tags: [Python]
+categories: 编程语言
 ---
 
 假设有一个类：

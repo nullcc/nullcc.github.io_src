@@ -1,6 +1,8 @@
 ---
 title: MongoDB索引(一)---入门篇：学习使用MongoDB数据库索引
 date: 2017-05-10
+tags: [MongoDB, 数据库索引]
+categories: 数据库
 ---
 
 ## 1. 准备工作

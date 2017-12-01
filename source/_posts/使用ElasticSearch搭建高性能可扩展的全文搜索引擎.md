@@ -1,6 +1,8 @@
 ---
 title: 使用ElasticSearch搭建高性能可扩展的全文搜索引擎
 date: 2017-05-18
+tags: [ElasticSearch]
+categories: web后端
 ---
 
 ## 准备环境

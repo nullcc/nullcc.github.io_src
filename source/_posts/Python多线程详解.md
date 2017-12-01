@@ -1,6 +1,8 @@
 ---
 title: Python多线程详解
 date: 2017-10-11
+tags: [Python]
+categories: 编程语言
 ---
 
 在Python中我们常用threading来处理多线程，我们先看一个例子：

@@ -1,6 +1,8 @@
 ---
 title: Python中try-except-finally的问题
 date: 2017-08-29
+tags: [Python]
+categories: 编程语言
 ---
 
 代码片段1：

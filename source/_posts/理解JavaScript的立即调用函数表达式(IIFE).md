@@ -1,6 +1,8 @@
 ---
 title: 理解JavaScript的立即调用函数表达式(IIFE)
 date: 2017-05-08
+tags: [js]
+categories: 编程语言
 ---
 
 首先这是js的一种函数调用写法，叫立即执行函数表达式(IIFE，即immediately-invoked function expression)。顾名思义IIFE可以让你的函数立即得到执行(废话)。

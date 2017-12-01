@@ -1,6 +1,8 @@
 ---
 title: ubuntu启用SSH
 date: 2017-08-20
+tags: [Linux]
+categories: 其他
 ---
 
 先安装ssh服务，执行命令：

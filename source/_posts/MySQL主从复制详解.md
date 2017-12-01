@@ -1,6 +1,8 @@
 ---
 title: MySQL主从复制详解
 date: 2017-08-17
+tags: [MySQL]
+categories: 数据库
 ---
 
 ## 数据库主从复制的作用

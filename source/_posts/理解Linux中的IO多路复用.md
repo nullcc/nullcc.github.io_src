@@ -1,6 +1,8 @@
 ---
 title: 理解Linux中的I/O多路复用
 date: 2017-11-13
+tags: [Linux, I/O多路复用]
+categories: 系统编程
 ---
 
 在Linux的I/O多路复用中，主要有这三个系统调用：

@@ -1,6 +1,8 @@
 ---
 title: Ubuntu下使用shipit构建自动化部署
 date: 2017-08-24
+tags: [Linux, 自动化部署]
+categories: 自动化部署
 ---
 
 ## 安装

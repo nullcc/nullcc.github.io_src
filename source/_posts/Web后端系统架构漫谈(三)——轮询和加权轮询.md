@@ -1,6 +1,8 @@
 ---
 title: Web后端系统架构漫谈(三)——轮询和加权轮询
 date: 2017-11-24
+tags: [后端架构]
+categories: web后端
 ---
 
 ## 轮询

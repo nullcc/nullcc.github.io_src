@@ -1,6 +1,8 @@
 ---
 title: koa2中controller实现类似sleep的延迟功能
 date: 2017-05-09
+tags: [koa2, node]
+categories: 编程语言
 ---
 
 今天有同事问我如何在koa2中的controller中使用延迟执行的功能，他直接在controller中使用setTimeout，但是没效果。

@@ -1,18 +1,24 @@
 ---
 title: CSRF原理浅析
 date: 2016-09-07
+tags: [CSRF, web前端攻防]
+categories: web前端
 ---
 
 ## CSRF简介
 
 ### CSRF是什么
+
 CSRF(Cross Site Request Forgery跨站点请求伪造)，又叫one click attack/session riding，一般缩写为CSRF。
 
 ### CSRF的危害
+
 CSRF是一种常见的web攻击方式，但是很多程序员甚至是安全工程师都不太理解它的利用条件和危害，因此CSRF也是web安全中最容易被忽略的一种攻击方式。但是在某些条件下，CSRF能够产生很强的破坏性。
+
 CSRF实际上是盗用了被害者的身份，以被害者的身份发送恶意请求给服务器。常见的CSRF攻击能够造成攻击者以被害者的名义发送消息、邮件、转账、购买物品等等。尽管CSRF的热门程度可能不如XSS高，但是在现在的互联网环境中，CSRF的危害不亚于XSS。
 
 ### CSRF的基本原理
+
 虽然从表面上看它和之前讲到的XSS很相似(因为都有一个Cross Site的缘故)，但是实际上它和XSS的攻击方式不同。XSS是利用网站受信任的用户来对目标用户进行攻击，而CSRF则是伪装成网站受信任用户的请求来利用网站。如图：
 
 ![csrf_1](/assets/images/post_imgs/csrf_1.png)

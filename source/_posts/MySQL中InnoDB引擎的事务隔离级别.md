@@ -1,6 +1,8 @@
 ---
 title: MySQL中InnoDB引擎的事务隔离级别
 date: 2017-09-29
+tags: [MySQL, InnoDB]
+categories: 数据库
 ---
 
 如果想要对MySQL中的InnoDB引擎的事务特性有深入的了解，就必须掌握它的四种事务隔离级别。如下：

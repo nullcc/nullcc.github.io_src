@@ -1,6 +1,8 @@
 ---
 title: 谈谈Python中的super
 date: 2017-07-14
+tags: [Python]
+categories: 编程语言
 ---
 
 先来看一段Python代码：

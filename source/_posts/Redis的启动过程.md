@@ -1,6 +1,8 @@
 ---
 title: Redis的启动过程
 date: 2017-11-13
+tags: [Redis]
+categories: 源码分析
 ---
 
 Redis的启动过程都写在server.c的main中（这里使用的是Redis-3.2.11版本的源码，早期版本应该在redis.c的main中）。下面就来概括性地看看Redis的启动过程中发生了什么。

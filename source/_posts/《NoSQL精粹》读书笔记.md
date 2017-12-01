@@ -1,6 +1,8 @@
 ---
 title: 《NoSQL精粹》读书笔记
 date: 2017-05-09
+tags: [NoSQL]
+categories: 读书笔记
 ---
 
 NoSQL数据库数据模型的一般分类：

@@ -1,6 +1,8 @@
 ---
 title: 使用nginx+gunicorn部署flask
 date: 2017-10-12
+tags: [Python]
+categories: 自动化部署
 ---
 
 本文会就使用nginx+gunicorn部署flask给出一个步骤说明。

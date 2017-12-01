@@ -1,6 +1,8 @@
 ---
 title: ElasticSearch基本原理
 date: 2017-05-18
+tags: [ElasticSearch]
+categories: web后端
 ---
 
 本部分简要介绍一下ElasticSearch的基本原理，不会太深入，仅仅是介绍最基础的一些概念。

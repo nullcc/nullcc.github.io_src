@@ -1,6 +1,8 @@
 ---
 title: Python包导入详解
 date: 2017-06-09
+tags: [Python]
+categories: 编程语言
 ---
 
 在Python导入包有以下四种情况：
