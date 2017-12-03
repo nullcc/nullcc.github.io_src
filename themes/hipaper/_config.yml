@@ -99,7 +99,7 @@ qihu_site_verification:
 # Miscellaneous
 # google_analytics:
 # gauges_analytics:
-# baidu_analytics:
+baidu_analytics: c3ffa09eef07ac510ef2ab126054b1cd
 # tencent_analytics:
 # busuanzi_analytics: true
 # twitter:
