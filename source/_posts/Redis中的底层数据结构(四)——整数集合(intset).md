@@ -1,7 +1,7 @@
 ---
 title: Redis中的底层数据结构(四)——整数集合(intset)
 date: 2017-11-16
-tags: [Redis 数据结构]
+tags: [Redis, 数据结构]
 categories: 源码分析
 ---
 

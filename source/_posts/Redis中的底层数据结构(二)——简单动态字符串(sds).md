@@ -1,7 +1,7 @@
 ---
 title: Redis中的底层数据结构(二)——简单动态字符串(sds)
 date: 2017-11-10
-tags: [Redis 数据结构]
+tags: [Redis, 数据结构]
 categories: 源码分析
 ---
 
