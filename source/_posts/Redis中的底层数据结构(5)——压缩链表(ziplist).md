@@ -1,5 +1,5 @@
 ---
-title: Redis中的底层数据结构(五)——压缩链表(ziplist)
+title: Redis中的底层数据结构(5)——压缩链表(ziplist)
 date: 2017-11-16
 tags: [Redis, 数据结构]
 categories: 源码分析

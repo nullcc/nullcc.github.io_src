@@ -1,5 +1,5 @@
 ---
-title: Web后端系统架构漫谈(四)——LVS的三种工作方式
+title: Web后端系统架构漫谈(4)——LVS的三种工作方式
 date: 2017-11-27
 tags: [后端架构]
 categories: web后端

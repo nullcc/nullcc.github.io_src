@@ -1,5 +1,5 @@
 ---
-title: Web后端系统架构漫谈(一)——负载均衡
+title: Web后端系统架构漫谈(1)——负载均衡
 date: 2017-11-23
 tags: [后端架构]
 categories: web后端

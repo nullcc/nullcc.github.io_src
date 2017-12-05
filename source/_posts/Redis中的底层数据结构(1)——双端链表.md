@@ -1,5 +1,5 @@
 ---
-title: Redis中的底层数据结构(一)——双端链表
+title: Redis中的底层数据结构(1)——双端链表
 date: 2017-11-10
 tags: [Redis, 数据结构]
 categories: 源码分析

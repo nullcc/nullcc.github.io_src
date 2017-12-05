@@ -1,5 +1,5 @@
 ---
-title: 垃圾回收(GC)算法介绍(三)——GC复制算法
+title: 垃圾回收(GC)算法介绍(3)——GC复制算法
 date: 2017-11-21
 tags: [垃圾回收]
 categories: 编程语言

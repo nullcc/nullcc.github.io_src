@@ -1,5 +1,5 @@
 ---
-title: Redis中的底层数据结构(三)——字典(dict)
+title: Redis中的底层数据结构(3)——字典(dict)
 date: 2017-11-15
 tags: [Redis, 数据结构]
 categories: 源码分析
