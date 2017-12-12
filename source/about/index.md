@@ -3,6 +3,10 @@ title: 关于
 comment: false
 ---
 
+## 自我介绍
+
+Ruby（一只英短）的首席铲屎官及监护人
+
 ## 编程语言:
 
 Node.js
