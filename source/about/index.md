@@ -12,7 +12,6 @@ Ruby（一只英短）的首席铲屎官及监护人
 Node.js
 Python
 Go
-C
 
 ## 职位
 
