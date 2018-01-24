@@ -11,6 +11,48 @@ Redis中常用的数据类型主要有：字符串、列表、哈希、集合和
 
 <!--more-->
 
+在`server.h`文件中，使用宏定义给出了Redis支持的所有对象编码：
+
+```Java
+/* Objects encoding. Some kind of objects like Strings and Hashes can be
+ * internally represented in multiple ways. The 'encoding' field of the object
+ * is set to one of this fields for this object. */
+/* 对象编码。一些对象比如字符串和哈希表在内部可以以不同的方式实现。这些对象的'encoding'字段
+ * 是下面的其中一个。 */
+
+// 原始编码
+#define OBJ_ENCODING_RAW 0     /* Raw representation */
+
+// 整型编码
+#define OBJ_ENCODING_INT 1     /* Encoded as integer */
+
+// 哈希表编码
+#define OBJ_ENCODING_HT 2      /* Encoded as hash table */
+
+// 压缩字典编码
+#define OBJ_ENCODING_ZIPMAP 3  /* Encoded as zipmap */
+
+// 链表编码
+#define OBJ_ENCODING_LINKEDLIST 4 /* Encoded as regular linked list */
+
+// 压缩链表编码
+#define OBJ_ENCODING_ZIPLIST 5 /* Encoded as ziplist */
+
+// 整数集合编码
+#define OBJ_ENCODING_INTSET 6  /* Encoded as intset */
+
+// 跳跃表编码
+#define OBJ_ENCODING_SKIPLIST 7  /* Encoded as skiplist */
+
+// 嵌入式字符串编码
+#define OBJ_ENCODING_EMBSTR 8  /* Embedded sds string encoding */
+
+// quicklist编码
+#define OBJ_ENCODING_QUICKLIST 9 /* Encoded as linked list of ziplists */
+```
+
+下面就对这五种数据类型的内部编码进行介绍。
+
 ## 字符串（string）
 
 string的内部编码有三种：
