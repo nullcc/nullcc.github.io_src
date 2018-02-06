@@ -1,5 +1,5 @@
 ---
-title: Redis协议规范
+title: (译)Redis协议规范
 date: 2018-02-01
 tags: [Redis]
 categories: 文档翻译
