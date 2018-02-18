@@ -25,7 +25,7 @@ categories: 文档翻译
 
 一般来说，使用下表进行持久化和延迟/性能的权衡，顺序从最高安全性/最高延迟到最低安全性/最低延迟。
 
-1. AOF + fsync always: 非常慢，只有
+1. AOF + fsync always: 非常慢，只有当你确实需要时才使用该配置。
 2. AOF + fsync every second: 一个比较均衡的选择。
 3. AOF + fsync every second + no-appendfsync-on-rewrite选项为yes: 也是一个比较均衡的选择，但是要避免重写期间执行fsync，这可以降低磁盘压力。
 4. AOF + fsync never: 将fsync操作交给内核，减少了对磁盘的压力和延迟。
