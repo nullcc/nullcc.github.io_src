@@ -25,9 +25,7 @@ categories: 文档翻译
 
 ## 推送消息的格式
 
-A message is a Array reply with three elements.
-
-一个消息是一个具有三个元素的数组。
+一个应答消息是一个具有三个元素的数组。
 
 第一个元素是消息的类型：
 
