@@ -133,9 +133,46 @@ categories: 文档翻译
 
 系统的活跃性基于三个主要特征：
 
-The auto release of the lock (since keys expire): eventually keys are available again to be locked.
-The fact that clients, usually, will cooperate removing the locks when the lock was not acquired, or when the lock was acquired and the work terminated, making it likely that we don’t have to wait for keys to expire to re-acquire the lock.
-The fact that when a client needs to retry a lock, it waits a time which is comparably greater than the time needed to acquire the majority of locks, in order to probabilistically make split brain conditions during resource contention unlikely.
-However, we pay an availability penalty equal to TTL time on network partitions, so if there are continuous partitions, we can pay this penalty indefinitely. This happens every time a client acquires a lock and gets partitioned away before being able to remove the lock.
+1. 锁的自动释放（当键过期时）：最终键可以再次被锁定。
+2. 事实上，当未获取到锁时，或者在获取到锁且工作结束时，客户端通常会合作删除锁，使我们不必等到键过期以后才能再次获取到锁。
+3. 事实上，当一个客户端需要重新获取锁时，它会等待一段比获取大多数锁的时间大的时间，以便使造成脑裂条件的概率不可能存在。
 
-Basically if there are infinite continuous network partitions, the system may become not available for an infinite amount of time.
+然而，我们在网络分区上需要承受TTL的时间消耗，因此如果出现连续的网络分区，我们就要无限期地承受这个时间消耗。这在每次一个客户端获取到一个锁后且客户端释放锁之前出现网络分区时都会发生。
+
+基本上如果有出现无限的连续网络分区，系统可能将永远不可用。
+
+## 性能，崩溃恢复和fsync
+
+许多用户使用Redis作为一个锁服务器需要高性能，即获取锁和释放锁的低延迟，和尽量高的每秒可能执行的获取/释放锁的操作次数。为了满足这些需求，减少和N个Redis服务器对话延迟的的策略一定是复用（或乞丐版复用，即让套接字工作在非阻塞模式下，一次性发送所有命令，并在稍后接受所有命令回复，这里假设了客户端和各个Redis实例之间的RTT是相似的）。
+
+然而，如果我们要建立一个崩溃-恢复的系统模型，这里还要考虑关于持久化的问题。
+
+为了发现问题所在，让我们假设Redis没有配置持久化。一个客户端在5个Redis实例中获取了3个锁。此时在客户端已经获取到锁的实例中有一个实例重启了，此时，又有三个实例可以对这个资源进行锁定，另一个客户端就可以再次锁定它，这违反了锁的互斥性安全属性。
+
+如果我们开启AOF持久化，会有所改善。例如，我们可以通过发送SHUTDOWN命令重启更新一台服务器。因为Redis的过期时间在语义上的实现实际上不受服务器关机的影响，这满足我们所有的要求。然而，只要是正常的关机，一切都很好。如果是停电呢？如果Redis被配置成默认的每秒执行一次fsync刷数据到磁盘上，有可能出现重启机器后部分键丢失。从理论上讲，如果我们想要保证锁在任何机器重启的情况下的安全性，我们需要设置持久化为`fsync=always`。反过来，这将完全破坏系统的性能，使系统的性能和传统的用于实现安全分布式锁的中央处理系统处于同一水平。.
+
+然而，事情要比乍看起来要好。基本上，只要实例崩溃后重新启动，算法安全性就保持不变，它不再参与任何当前活跃的锁，因此当实例重启后，客户端只会从除了重新加入系统以外的Redis实例中获取锁。
+
+为了保证这一点，我们需要来看一个例子，在一个实例崩溃后，实例不可用的时间至少比我们使用的TTL长一点，也就是说，当实例崩溃时，当前存在的锁将在这个实例重启之后变得无效且被自动释放。
+
+使用延迟重启基本上可以实现安全性甚至不需要任何形式的Redis持久化，然而请注意，这可能导致可用性问题。例如，如果大部分实例崩溃，系统将在TTL时间内变成全局不可用（这里的全局意味着没有任何资源能够这段时间内被锁定）。
+
+## 使算法更可靠：扩展锁
+
+如果客户端要执行的操作是由一些小步骤组成的，默认可以使用较小的锁有效时间，并扩展了实现锁扩展机制的算法。基本上对于客户端来说，如果在计算过程中锁的有效期快到了，此时可以在键存在的情况下通过向所有Redis实例发送一个Lua脚本来延长键的TTL，而键的值还是保持当时客户端获取锁时赋予的那个值。
+
+客户端只应该在锁的有效期内（基本上使用的算法与获取锁时使用的算法非常类似），且可以对大多数Redis实例延长锁有效期的前提下考虑重新获取锁。
+
+然而，这并没有在技术上改变算法，因此应该限制重新获取锁的尝试次数，否则会违反其中一条活跃性属性。
+
+## 想帮忙吗？
+
+如果你在研究分布式系统，我们将非常乐意听取你的观点和分析。如果能有其他语言的参考实现就更好了。
+
+先说声谢谢了！
+
+## 分析Redlock
+
+Martin Kleppmann analyzed Redlock here. I disagree with the analysis and posted my reply to his analysis here.
+
+Martin Kleppmann在[这里](http://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html)分析了Redlock。我并不同意这个分析，我把我对他的分析的回复放在[这里](http://antirez.com/news/101)。
