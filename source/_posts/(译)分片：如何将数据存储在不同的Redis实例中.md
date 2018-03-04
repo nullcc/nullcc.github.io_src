@@ -87,7 +87,7 @@ Redis中的分片主要有两个目标：
 
 到目前为止，我们涵盖了Redis分片的理论部分，但在实践中要如何做呢？我们应该使用哪种系统？
 
-## Redis集群
+### Redis集群
 
 Redis集群是获得自动分片和高可用性的首选方式。它从2015-04-01开始就在生产环境中可用了。你可以在[集群教程](https://redis.io/topics/cluster-tutorial)中获取更多有关Redis集群的信息。
 
@@ -95,7 +95,7 @@ Redis集群是获得自动分片和高可用性的首选方式。它从2015-04-0
 
 Redis集群是请求路由和客户端分片之间的一种混合方式。
 
-## Twemproxy
+### Twemproxy
 
 Twemproxy是一个由Twitter为Memcached ASCII和Redis协议开发的一个代理。它是单线程的，使用C编写而成，并且它非常快。它是一个使用Apache 2.0许可证的开源软件。
 
@@ -107,7 +107,7 @@ Twemproxy支持在多个Redis实例中自动分片，如果节点不可用，会
 
 你可以从[antirez的这篇blog](http://antirez.com/news/44)中阅读到更多关于Twemproxy的信息。
 
-## 支持一致性哈希的客户端
+### 支持一致性哈希的客户端
 
 一种Twemproxy的替代方案是，使用支持采用一致性哈希或其他类似算法进行分片的客户端。这里有多个Redis客户端支持一致性哈希，尤其是[Redis-rb](https://github.com/redis/redis-rb)和[Predis](https://github.com/nrk/predis)。
 
