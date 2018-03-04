@@ -11,22 +11,21 @@ categories: 测试
 
 在编程领域中对于性能这个词，有很多评估的角度，比如CPU时间、内存消耗、磁盘I/O、网络带宽等，本文将从CPU时间和内存消耗两个方面来介绍如何对Python程序进行性能分析。
 
-首先我们需要一段测试代码，我们使用Fibonacci数列来做测试，这是一段CPU密集型的代码，使用的是递归版本：
+首先我们需要一段测试代码，我们使用判断一个给定的数字是否是素数的函数`isPrime`来做测试，这是一段CPU密集型的代码：
 
 ```Python
-def fib(n):
-    result = 0
-    if(n < 1):
-        print("错误的n值！")
-        return -1
-    else:
-        if(n == 1 or n == 2):
-            return 1
-        else:
-            return fib(n-1) + fib(n-2)
+import math    
+
+def isPrime(n):
+	if n <= 1:
+		return False
+	for i in range(2, int(math.sqrt(n)) + 1):
+		if n % i == 0:
+			return False
+	return True
 ```
 
-需要注意的是，Fibonacci数列的递归实现在递归层次过深的情况下会非常耗时，如果想提高性能，还是要用迭代的方式。
+下面的一部分测试将使用`isPrime`函数。
 
 ## 使用装饰器测量函数运行时间
 
@@ -72,32 +71,37 @@ test took 0.7034409046173096 seconds
 #!/usr/bin/python
 #coding=utf-8
 
+import math  
 import timeit
-
-def fib(n):
-    result = 0
-    if(n < 1):
-        print("错误的n值！")
-        return -1
-    else:
-        if(n == 1 or n == 2):
-            return 1
-        else:
-            return fib(n-1) + fib(n-2)
+  
+def isPrime(n):
+	if n <= 1:
+		return False
+	for i in range(2, int(math.sqrt(n)) + 1):
+		if n % i == 0:
+			return False
+	return True
 
 def fn():
-	return fib(38)
+	start = 1
+	end = 2000000
+	cnt = 0
+	for i in range(start, end + 1, 1):
+   		res = isPrime(i)
+   		if res:
+   			cnt += 1
+	print("There are " + str(cnt) + " primes in the " + str(start) + "-" + str(end) + " range.")
 
 if __name__ == "__main__":
 	t = timeit.timeit(stmt=fn, number=1)
 	print(t)
 ```
 
-我们使用递归方式计算Fibonacci数列的第38项（选择第38项是因为使用递归方式计算这项的时间尚可接受，再往后耗时就很长了），结果如下：
+我们计算2000000以内的素数个数，在我的Mac笔记本上耗时如下：
 
-    14.778004587991745
+    12.233505398966372
 
-在我的Mac机器上计算fib(38)耗时将近15秒。执行期间如果你打开活动监视器会发现该Python进程占用的CPU内核使用率达到99%以上，因为fib是CPU密集型的。
+执行期间如果你打开活动监视器会发现该Python进程占用的CPU内核使用率达到99%以上，因为isPrime函数是CPU密集型的。
 
 timeit模块还有很多用法，具体信息可以查阅相关文档。
 
@@ -111,34 +115,42 @@ timeit模块还有很多用法，具体信息可以查阅相关文档。
 #!/usr/bin/python
 #coding=utf-8
 
+import math  
 import timeit
+  
+def isPrime(n):
+	if n <= 1:
+		return False
+	for i in range(2, int(math.sqrt(n)) + 1):
+		if n % i == 0:
+			return False
+	return True
 
-def fib(n):
-    result = 0
-    if(n < 1):
-        print("错误的n值！")
-        return -1
-    else:
-        if(n == 1 or n == 2):
-            return 1
-        else:
-            return fib(n-1) + fib(n-2)
+def fn():
+	start = 1
+	end = 2000000
+	cnt = 0
+	for i in range(start, end + 1, 1):
+   		res = isPrime(i)
+   		if res:
+   			cnt += 1
+	print("There are " + str(cnt) + " primes in the " + str(start) + "-" + str(end) + " range.")
 
 if __name__ == "__main__":
-    res = fib(38)
+	fn()
 ```
 
 我们在shell中执行（注意要使用`/usr/bin/time`来引用time命令，否则会引用到shell内建的time命令，后者对我们的性能测试意义不大）：
 
 ```shell
-/usr/bin/time -p python fib.py
+/usr/bin/time -p python prime_numbers.py
 ```
 
 获得如下输出：
 
-    real        14.76
-    user        14.59
-    sys          0.07
+    real        13.96
+    user        13.75
+    sys          0.09
 
 `time`命令输出了三行，其中`real`表示总耗时，`user`表示CPU花费在实际任务上的时间，这其中不包括陷入内核中执行的时间，`sys`表示陷入内核执行的时间。
 
@@ -146,30 +158,31 @@ if __name__ == "__main__":
 
 ## 使用cProfile模块
 
-python -m cProfile profile.stats fib.py
+python -m cProfile profile.stats prime_numbers.py
 
-下面的命令使用cProfile模块对fib.py进行分析：
+下面的命令使用cProfile模块对prime_numbers.py进行分析：
 
 ```shell
-python -m cProfile -s cumulative fib.py
+python -m cProfile -s cumulative prime_numbers.py
 ```
 
 输出如下：
 
 ```
-(env360) ➜  test python -m cProfile -s cumulative fib.py
-         78176340 function calls (4 primitive calls) in 22.402 seconds
+    4000509 function calls (4000503 primitive calls) in 14.028 seconds
 
-   Ordered by: cumulative time
+    Ordered by: cumulative time
 
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    0.000    0.000   22.402   22.402 {built-in method builtins.exec}
-        1    0.000    0.000   22.402   22.402 fib.py:4(<module>)
-78176337/1   22.402    0.000   22.402   22.402 fib.py:4(fib)
-        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2/1    0.000    0.000   14.028   14.028 {built-in method builtins.exec}
+        1    0.000    0.000   14.028   14.028 test2.py:1(<module>)
+        1    0.405    0.405   14.027   14.027 test2.py:12(fn)
+    2000000   13.398    0.000   13.622    0.000 test2.py:4(isPrime)
+    1999999    0.224    0.000    0.224    0.000 {built-in method math.sqrt}
+    ...
 ```
 
-输出结果中每列的含义：
+这里只截取前面几行最重要的输出信息，输出结果中每列的含义：
 
 * ncalls：函数被调用了总次数
 * tottime：函数执行的总时间（不包括其下的子函数）
