@@ -82,7 +82,16 @@ archive_generator:
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
+# deploy:
+#   type: git
+#   repo: https://github.com/nullcc/nullcc.github.io.git
+#   branch: master
+
 deploy:
-  type: git
-  repo: https://github.com/nullcc/nullcc.github.io.git
-  branch: master
+  - type: git
+  - repo: https://github.com/nullcc/nullcc.github.io.git
+  - branch: master
+
+  - type: git
+  - repo: 140.143.93.78:/var/repo/hexo_static
+  - branch: master
