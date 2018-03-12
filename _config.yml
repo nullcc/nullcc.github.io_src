@@ -93,5 +93,5 @@ deploy:
     branch: master
 
   - type: git
-    repo: 140.143.93.78:/var/repo/hexo_static
+    repo: root@140.143.93.78:/var/repo/hexo_static
     branch: master
