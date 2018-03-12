@@ -89,9 +89,9 @@ archive_generator:
 
 deploy:
   - type: git
-  - repo: https://github.com/nullcc/nullcc.github.io.git
-  - branch: master
+    repo: https://github.com/nullcc/nullcc.github.io.git
+    branch: master
 
   - type: git
-  - repo: 140.143.93.78:/var/repo/hexo_static
-  - branch: master
+    repo: 140.143.93.78:/var/repo/hexo_static
+    branch: master
