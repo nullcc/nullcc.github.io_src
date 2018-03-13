@@ -13,7 +13,6 @@ categories: 环境配置
 
     yum install gcc gcc-c++
 
-
 ## 安装Git：
 
     yum install -y git
@@ -197,3 +196,122 @@ Jenkins的配置文件存放在`/etc/sysconfig/jenkins`，我们通过可以修�
     nohup java -jar /usr/lib/jenkins/jenkins.war --httpPort=8080 &
 
 之后在web上做一些配置即可。
+
+## 安装RabbitMQ
+
+由于RabbitMQ是Erlang写的，因此我们需要先安装Erlang，这里使用源码安装。在此之前需要先安装一波构建依赖：
+
+    sudo yum install -y which wget perl openssl-devel make automake autoconf ncurses-devel gcc
+
+接着安装Erlang：
+
+    curl -O http://erlang.org/download/otp_src_20.2.tar.gz
+    tar zxvf otp_src_20.2.tar.gz
+    cd otp_src_20.2
+    ./otp_build autoconf
+    ./configure && make && sudo make install
+
+安装完后，一般还需要将Erlang安装的bin目录加入环境变量，在`~/.bashrc`添加如下语句后后保存：
+
+    export PATH="/usr/local/lib/erlang/bin:$PATH"
+    source ~/.bashrc
+
+验证安装：
+
+    erl
+
+看到进入Erlang Shell说明安装成功。
+
+比较新版本的RabbitMQ从源码编译需要make 4.x版本，可以执行以下命令安装make 4.2：
+
+    wget http://ftp.gnu.org/gnu/make/make-4.2.tar.gz
+    tar -zxvf make-4.2.tar.gz
+    cd make-4.2
+    ./configure
+    make && make install
+
+    cd /usr/bin
+    mv make make_bak
+    ln -s /usr/local/bin/make ./make
+
+之后就检测make 4.2安装情况：
+
+    make -v 
+
+这个命令应该要显示make版本为4.2。
+
+然后安装RabbitMQ：
+
+    wget http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.15/rabbitmq-server-3.6.15.tar.xz
+    xz -d rabbitmq-server-3.6.15.tar.xz
+    tar xvf rabbitmq-server-3.6.15.tar
+    cd rabbitmq-server-3.6.15
+    make
+    make install TARGET_DIR=/opt/rabbitmq SBIN_DIR=/opt/rabbitmq/sbin MAN_DIR=/opt/rabbitmq/man DOC_INSTALL_DIR=/opt/rabbitmq/doc
+
+安装后设置环境变量：
+
+    vim /etc/profile
+    export PATH=$PATH:/usr/local/lib/erlang/lib/rabbitmq_server-3.6.15/sbin/
+    source /etc/profile
+
+    mkdir /etc/rabbitmq
+    cp ./deps/rabbit/docs/rabbitmq.config.example /etc/rabbitmq/rabbitmq.config
+
+以守护进程方式启动RabbitMQ：
+
+    rabbitmq-server &
+
+然后启用插件：
+
+    rabbitmq-plugins enable rabbitmq_management
+    rabbitmq-plugins enable rabbitmq_mqtt
+
+修改iptable：
+
+    vim /etc/sysconfig/iptables
+    
+    -A INPUT -m state --state NEW -m tcp -p tcp --dport 15672 -j ACCEPT
+
+    service iptables restart
+
+设置RabbitMQ开机自启动，执行：
+
+    vim /lib/systemd/system/rabbitmq.service
+
+内容如下：
+
+    [Unit]
+    Description=Start RabbitMQ at startup.
+    After=multi-user.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/local/lib/erlang/lib/rabbitmq_server-3.6.15/sbin/rabbitmq-server
+    PrivateTmp=true
+
+    [Install]
+    WantedBy=multi-user.target
+
+    ######################################################################
+    # 参考，以下是yum安装的服务
+    [Unit]
+    Description=RabbitMQ broker
+    After=syslog.target network.target
+
+    [Service]
+    Type=notify
+    User=rabbitmq
+    Group=rabbitmq
+    WorkingDirectory=/var/lib/rabbitmq
+    ExecStart=/usr/lib/rabbitmq/bin/rabbitmq-server
+    ExecStop=/usr/lib/rabbitmq/bin/rabbitmqctl stop
+
+    [Install]
+    WantedBy=multi-user.target
+
+    #####################################################################
+    # 重载服务，启动服务
+    systemctl daemon-reload
+    systemctl start rabbitmq.service
+
