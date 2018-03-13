@@ -91,6 +91,8 @@ MySQL安装后，在`/var/log/mysqld.log`为root用户生成了一个默认密�
     mysql -uroot -p                               # 进入MySQL
     ALTER USER 'root'@'localhost' IDENTIFIED BY 'your_root_password'; # 设置root用户的密码
 
+具体可以参见[这里](https://www.cnblogs.com/xiami-mj/p/6978650.html)
+
 ## 安装Docker：
 
     sudo yum update
