@@ -260,7 +260,7 @@ Jenkins的配置文件存放在`/etc/sysconfig/jenkins`，我们通过可以修�
 
 以守护进程方式启动RabbitMQ：
 
-    rabbitmq-server &
+    rabbitmq-server -detached
 
 然后启用插件：
 
