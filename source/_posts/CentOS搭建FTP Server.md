@@ -45,7 +45,11 @@ categories: 环境配置
 
 ## ftp配置
 
-vsftpd的配置目录为/etc/vsftpd。
+vsftpd的配置目录为/etc/vsftpd。目录中文件含义如下：
+
+    vsftpd.conf 为主要配置文件
+    ftpusers 配置禁止访问 FTP 服务器的用户列表
+    user_list 配置用户访问控制
 
 创建一个欢迎文件：
 
