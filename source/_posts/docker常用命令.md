@@ -38,7 +38,7 @@ categories: docker
 `docker rmi [image id]`:    删除指定镜像
 注意：删除某个镜像前必须将依赖该镜像的所有容器先删除，否则会报错
 
-d`ocker build -t [user]/[repo]:[version] .` 
+`docker build -t [user]/[repo]:[version] .` 
 使用当前目录下的Dockerfile创建一个名为[user]/[repo]:[version]的镜像，比如`docker build -t ethan.zhang/flask-demo:latest .`，也可以不填用户名，比如：`docker build -t flask-demo:latest .`
 
 `docker run -d -p 5000:5000 --name flask_server flask_demo:latest`
