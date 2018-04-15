@@ -17,7 +17,7 @@ categories: docker
 
 `docker info`     docker当前状态
 
-### 容器相关
+### 容器
 
 `docker ps`                 查看当前正在运行容器的状态
 
@@ -25,7 +25,9 @@ categories: docker
 
 `docker rm [container]`  删除指定容器
 
-### 镜像相关
+`docker diff [container]` 查看容器存储层的改动
+
+### 镜像
 
 `docker search [image]`  搜索镜像
 
@@ -43,9 +45,15 @@ categories: docker
 
 `docker rmi $(docker image ls -q [image])`  删除指定的所有镜像
 
-`docker build -t [user]/[repo]:[version] .`  使用当前目录下的Dockerfile创建一个名为[user]/[repo]:[version]的镜像，也可以不填用户名：`docker build -t [repo]:[version] .`
+`docker history [image]` 查看镜像的历史记录
 
-### 运行相关
+## 构建
+
+`docker build -t [user]/[repo]:[version] .`  使用当前目录下的Dockerfile（默认，也可以用-f参数指定一个Dockerfile）构建一个名为[user]/[repo]:[version]的镜像，也可以不填用户名：`docker build -t [repo]:[version] .`
+
+`docker build -t [git repo url] [user]/[repo]:[version]`  从git repo url构建
+
+### 运行
 
 `docker start [container]`      启动指定容器
 
