@@ -30,6 +30,9 @@ categories: docker
 
 `docker logs [container]` 查看容器的日志
 
+`docker logs -f [container]` 持续输出容器的日志
+
+`docker volume prune` 清理无主的数据卷
 
 ### 镜像
 
@@ -71,6 +74,8 @@ categories: docker
 
 `docker unpause [container]`    恢复容器中所有的进程
 
+`docker container prune`        清理所有处于终止状态的容器
+
 `docker attach [container]`     进入某个容器（使用exit退出后容器也会跟着停止运行）
 
 `docker exec -ti [container]`   启动一个伪终端以交互式的方式进入某个容器（使用exit退出后容器不停止运行，当需要进入容器时推荐使用exec）
@@ -79,4 +84,4 @@ categories: docker
 
 `docker commit -m "[commit message]]" -a "[user name]" [container id] [user name]/[image]:[image tag]`  进入一个容器后做修改，可以进行commit来构建一个新的镜像以保存这些修改，之后如果有需要可以在新镜像的基础上继续构建。-m表示本次提交的附带信息，-a表示提交的用户
 
-`docker run -d -p [host port]:[container port] -v [host dir]:[container dir] --name [container name] [image]:[image tag]`  -d表示以deamon模式运行容器，-p表示将宿主机端口(host port)映射到容器端口(container port)，-v表示将宿主机的目录(host dir)映射到容器目录(container dir)，之所以需要映射目录是因为容器一旦退出，容器层面上的存储就会消失，容器的存储层是无状态的，它本身不能用来持久化任何数据，所以需要将需要持久化的数据映射到宿主机上，--name表示容器名称，注意后面的镜像名(image name)和镜像标签(image tag)都要有
+`docker run -d -p [host port]:[container port] -v [host dir]:[container dir] --name [container name] [image]:[image tag]`  -d表示以deamon模式运行容器，-p表示将宿主机端口(host port)映射到容器端口(container port)，注意-p可以多次使用来映射多个端口，-v表示将宿主机的目录(host dir)映射到容器目录(container dir)，之所以需要映射目录是因为容器一旦退出，容器层面上的存储就会消失，容器的存储层是无状态的，它本身不能用来持久化任何数据，所以需要将需要持久化的数据映射到宿主机上，--name表示容器名称，注意后面的镜像名(image name)和镜像标签(image tag)都要有
