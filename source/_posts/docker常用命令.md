@@ -85,3 +85,30 @@ categories: docker
 `docker commit -m "[commit message]]" -a "[user name]" [container id] [user name]/[image]:[image tag]`  进入一个容器后做修改，可以进行commit来构建一个新的镜像以保存这些修改，之后如果有需要可以在新镜像的基础上继续构建。-m表示本次提交的附带信息，-a表示提交的用户
 
 `docker run -d -p [host port]:[container port] -v [host dir]:[container dir] --name [container name] [image]:[image tag]`  -d表示以deamon模式运行容器，-p表示将宿主机端口(host port)映射到容器端口(container port)，注意-p可以多次使用来映射多个端口，-v表示将宿主机的目录(host dir)映射到容器目录(container dir)，之所以需要映射目录是因为容器一旦退出，容器层面上的存储就会消失，容器的存储层是无状态的，它本身不能用来持久化任何数据，所以需要将需要持久化的数据映射到宿主机上，--name表示容器名称，注意后面的镜像名(image name)和镜像标签(image tag)都要有
+
+
+### docker-compose
+
+`docker-compose --version`  查看docker-compose版本
+`docker-compose up`  运行compose项目
+`docker-compose up --no-deps -d [service name]` 重新创建服务并后台停止旧服务，启动新服务，且并不会影响到其所依赖的服务
+
+
+### centos 7启动、停止和重启docker
+
+`sudo systemctl start docker` 启动docker
+
+`sudo systemctl stop docker` 停止docker
+
+`sudo systemctl restart docker` 重启docker
+
+
+### 添加源
+
+修改`/etc/docker/daemon.json`：
+
+    {
+      "registry-mirrors": ["http://hub-mirror.c.163.com"]
+    }
+
+之后重启docker即可。
