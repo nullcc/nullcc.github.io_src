@@ -116,13 +116,13 @@ MySQL安装后，在`/var/log/mysqld.log`为root用户生成了一个默认密�
 
 启动nginx：
 
-    docker run -p 80:80 --name mynginx  -v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf -v /var/www/hexo:/opt/nginx/www -v $PWD/log:/opt/nginx/log -d nginx
+    docker run -p 80:80 --name mynginx  -v /opt/docker_nginx/conf/nginx.conf:/etc/nginx/nginx.conf -v /var/www/hexo:/opt/nginx/www -v /opt/docker_nginx/log:/opt/nginx/log -d nginx
 
 解释一下参数：
 
 1. -p 80:80：容器的80端口映射到本机的80端口（左边是本机，右边是容器）
 2. --name mynginx：容器名称，可以自定义
-3. -v $PWD/conf/nginx.conf:/etc/nginx/nginx.conf：表示将本机当前目录下的nginx.conf映射到容器的/etc/nginx/nginx.conf
+3. -v /opt/docker_nginx/conf/nginx.conf:/etc/nginx/nginx.conf：映射宿主机和容器的目录
 4. -v /var/www/hexo:/opt/nginx/www：表示将本机的/var/www/hexo目录映射到容器的/opt/nginx/www，注意这里其实是把一个静态文件目录映射到容器内，这个静态文件目录可以自己定义
 5. -v $PWD/log:/opt/nginx/log：表示将本机当前目录下的/log目录映射到容器的/opt/nginx/log，作为存放日志的地方
 
