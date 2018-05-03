@@ -5,7 +5,7 @@ tags: [docker]
 categories: docker
 ---
 
-本文主要记录一些Linux下好用的命令，主要是个人在日常使用中经常使用的
+本文主要记录一些Linux下好用的命令，主要是个人在日常使用中经常使用的，此文会不断更新
 
 <!--more-->
 
@@ -57,8 +57,6 @@ scp root@10.10.10.10:/opt/soft/nginx-0.5.38.tar.gz /opt/soft/ 从远程机器复
 scp -r root@10.10.10.10:/opt/soft/mongodb /opt/soft/ 从远程机器复制目录到本地
 
 
-
-
 ### 文件查找
 
 find / -name [file] 从/开始查找指定的文件
@@ -66,7 +64,7 @@ find / -user [user] 从/开始查找属于指定用户的文件或目录
 find / -name \*.zip 从/开始查找以.zip结尾的文件
 which cd 显示一个二进制文件或可执行文件的完整路径
 whereis cd 显示一个二进制文件、源码和man的位置
-
+grep -rnw [/path/to/folder] -e 'patten'  在指定目录下递归查找匹配模式
 
 ### 磁盘空间
 
@@ -103,6 +101,7 @@ ps -ef | grep java 显示所有java进程
 ps aux 和ps -ef类似，只不过ps aux是BSD风格，ps -ef是System V风格，且aux会截断command列，而-ef不会，一般推荐使用ps -ef
 kill -9 [pid] 强制终止一个进程
 pstree 树形显示进程
+lsof -i:[port] 查看占用指定端口的进程
 
 
 ### 网络
