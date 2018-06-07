@@ -78,7 +78,7 @@ categories: docker
 
 `docker attach [container]`     进入某个容器（使用exit退出后容器也会跟着停止运行）
 
-`docker exec -ti [container]`   启动一个伪终端以交互式的方式进入某个容器（使用exit退出后容器不停止运行，当需要进入容器时推荐使用exec）
+`docker exec -ti [container] /bin/bash`   启动一个伪终端以交互式的方式进入某个容器（使用exit退出后容器不停止运行，当需要进入容器时推荐使用exec）
 
 `docker run -it [image] /bin/bash`  运行镜像并运行在交互模式（-it是两个选项，-i表示运行在交互模式，-t表示终端），在容器bash中使用exit会退出并关闭容器，如果想退出交互模式但不关闭容器，可以使用ctrl+p ctrl+q，如果想在退出容器时删除容器以节省空间的话，可以带上--rm参数
 
