@@ -1,8 +1,8 @@
 ---
 title: Linux下好用的命令收集
 date: 2018-04-13
-tags: [docker]
-categories: docker
+tags: [Linux]
+categories: Linux
 ---
 
 本文主要记录一些Linux下好用的命令，主要是个人在日常使用中经常使用的，此文会不断更新
@@ -128,3 +128,4 @@ nslookup [host] 查询host的IP地址
 ### misc
 
 !! 显示上一次执行的命令
+chsh -s /bin/zsh 改变当前用户默认使用的shell类型
