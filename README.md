@@ -2,12 +2,18 @@
 
 my homepage
 
+
 ## develop
 
-hexo server
+```bash
+$ npm i hexo -g
+$ hexo server
+```
+
 
 ## deploy
 
-hexo g
-
-hexo d
+```bash
+$ hexo g
+$ hexo d
+```

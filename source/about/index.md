@@ -5,13 +5,21 @@ comment: false
 
 ## 自我介绍
 
-Ruby（一只英短）的首席铲屎官及监护人
+CSO (Chan Shi Officer) 一枚
+乐高建筑爱好者
+脚本语言爱好者
+乌龙茶爱好者
+非湖北籍热干面爱好者
+桌球手残选手
+FPS游戏手残选手
+
 
 ## 编程语言:
 
 Node.js
 Python
 Go
+Lua
 
 ## 职位
 

@@ -128,4 +128,6 @@ nslookup [host] 查询host的IP地址
 ### misc
 
 !! 显示上一次执行的命令
-chsh -s /bin/zsh 改变当前用户默认使用的shell类型
+cat /etc/shells 查看存在的shell
+echo $SHELL 查看正在使用的shell
+chsh -s /bin/${shell_type} 改变当前用户默认使用的shell类型
