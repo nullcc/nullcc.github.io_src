@@ -177,26 +177,31 @@ example 8:
 
 ```js
 //ES 6原生Promise示例
-var fs = require('fs')
+const fs = require('fs')
 
-var read = function (filename){
-    var promise = new Promise(function(resolve, reject){
-    	fs.readFile(filename, 'utf8', function(err, data){
-    		if (err){
-    			reject(err);
-    		}
-    		resolve(data);
-    	})
+const read = function (filename){
+  const promise = new Promise(function(resolve, reject){
+    fs.readFile(filename, 'utf8', function(err, data){
+    	if (err){
+    		reject(err);
+    	}
+    	resolve(data);
     });
-    return promise;
+  });
+  return promise;
 }
     
-read('./text1.txt')
+read('a.txt')
 .then(function(data){
-    console.log(data);
+  console.log(data);
 }, function(err){
-    console.log("err: " + err);
+  console.log("err: " + err);
 });
+```
+
+```shell
+$ babel-node promise.js
+file a content
 ```
 
 以上代码中，read函数是Promise化的，在read函数中，实例化了一个Promise对象，Promise的构造函数接受一个函数作为参数，这个函数的两个参数分别是resolve方法和reject方法。如果异步操作成功，就是用resolve方法将Promise对象的状态从“未完成”变为“完成”(即从pending变为resolved)，如果异步操作出错，则是用reject方法把Promise对象的状态从“未完成”变为“失败”(即从pending变为rejected)，read函数返回了这个Promise对象。Promise实例生成以后，可以用then方法分别指定resolve方法和reject方法的回调函数。

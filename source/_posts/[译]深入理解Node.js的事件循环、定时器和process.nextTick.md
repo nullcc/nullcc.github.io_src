@@ -1,5 +1,5 @@
 ---
-title: (译)深入理解Node.js的事件循环、定时器和process.nextTick()
+title: (译)深入理解Node.js的事件循环、定时器和process.nextTick
 date: 2018-10-11
 tags: [node]
 categories: 文档翻译
@@ -20,7 +20,7 @@ categories: 文档翻译
 
 当Node.js将在启动时初始化事件循环，处理输入脚本（或者进入REPL，不过这不在本文讨论范围内），在脚本中可能会异步调用API，调度定时器或者调用process.nextTick()，然后开始处理事件循环。
 
-下图展示了事件循环的操作顺序的简化概述。
+下图展示了事件循环的操作顺序的简化概述：
 
 ```
    ┌───────────────────────────┐
