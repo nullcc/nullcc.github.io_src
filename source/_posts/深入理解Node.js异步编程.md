@@ -5,7 +5,7 @@ tags: [js, node]
 categories: 编程语言
 ---
 
-本文将深入解析node.js的异步世界（请准备好瓜子和可乐，本文比较长）。
+本文将深入解析node.js的异步世界（本文比较长，请准备好瓜子和可乐）。
 
 <!--more-->
 
@@ -126,7 +126,7 @@ doSomethingAsync1((err1, data1) => {
 
 ES 6中原生提供了Promise对象，Promise对象代表`某个未来才会知道结果的事件`(一般是一个异步操作)，换句话说，一个Pomise就是一个代表了异步操作最终完成或者失败的对象。Promise本质上是一个绑定了回调的对象，而不是像callback异步编程那样直接将回调传入函数内部。
 
-Promise对外提供了统一的API，可供进一步处理。Promise的`最终`状态有两种：`fulfilled`和`reject`，`fulfilled`表示Promise处于完成状态，`reject`表示Promise处于被拒绝状态，这两种状态都是Promise的`已决议`状态，相反如果Promise还未被`决议`，它就处于`未决议`状态。
+Promise对外提供了统一的API，可供进一步处理。Promise的`最终`状态有两种：`fulfilled`和`rejected`，`fulfilled`表示Promise处于完成状态，`rejected`表示Promise处于被拒绝状态，这两种状态都是Promise的`已决议`状态，相反如果Promise还未被`决议`，它就处于`未决议`状态。
 
 需要强调的一点是，Promise一经决议就无法改变其状态，这使得Promise和它的名字一样：君子一言驷马难追。
 
@@ -584,7 +584,7 @@ Promise API还有其他几个变体：
 * Promise.first() 只要第一个promise完成，它就会忽略后续promise的任何完成和拒绝。
 * Promise.last() 类似于Promise.first()，但条件变为只有最后一个promise完成胜出。
 
-对这个四个Promise API有兴趣的可以自己做做实验，这里不再深入讲解。
+对这个四个Promise API有兴趣的同学可以自己做做实验，这里不再深入讲解。
 
 ##### then()和catch()
 
@@ -637,12 +637,274 @@ read是经过Promise化的fs.readFile，调用read会返回一个Promise，一�
 
 #### Promise的局限性
 
+1. 不可取消。
+2. 不可打断。
+3. 一经决议就不可变。
+
+
+### 迭代器(Iterator)和生成器(Generator)
+
+ES 6中引入了生成器函数(Generator Function)。生成器函数用`function *`定义。它和普通函数相比有一些有意思的特性。
+
+用一个简单的例子来展示生成器函数的工作方式：
+
+```javascript
+// generator.js
+function *generator() {
+  console.log('hello');
+  const x = 10 * (yield 'world');
+  return x;
+};
+
+const it = generator();
+let res = it.next();
+console.log(res); // { value: 'world', done: false }
+
+console.log('pause here');
+
+res = it.next(4);
+console.log(res); // { value: 40, done: true }
+```
+
+运行结果：
+
+```shell
+$ babel-node generator.js
+hello
+{ value: 'world', done: false }
+pause here
+{ value: 40, done: true }
+```
+
+上面代码段定义了一个生成器函数，这里重要的是它的执行流程：
+
+1. 调用一个生成器函数（就像调用普通函数那样）并不会立即开始执行这个生成器内部的代码，而是返回一个它的迭代器。因此`generator();`实际上返回了一个迭代器。
+2. 接着`let res = it.next();`这行代码使生成器函数开始执行，打印`hello`。当遇到`yield`时，生成器会暂停，交出控制权。这里打印res会发现其内容为`{ value: 'world', done: false }`，value是生成器内部的yield出的值，如果yield后面没有东西，这个value就是`undefined`，`done`为`false`表示生成器还未执行完毕。
+3. `console.log('pause here');`这行代码是我们在生成器暂停期间插入的一段执行逻辑。刚才提到，在生成器暂停期间会交出控制权，因此控制权又回到外部。
+4. 语句`res = it.next(4);`将使生成器继续运行，直到遇到下一个yield，而且这次传入了4，通过`next()`传入的值会使得yield获取这个值，所以在生成器内部x的值就是40（10*4）。再次观察res为`{ value: 40, done: true }`，由于生成最终返回x，所value就是40，done也变为`true`了，说明生成器执行完毕。
+
+通过解析这段代码我们可以发现几个很有意思的事情：
+
+1. 生成器内部可以通过yield主动交出控制权，使控制权回到调用方。
+2. yield后面可以有值，有值得yield会将这个值`返回`出来。
+3. 可以通过`next()`将值传入生成器中，该值将作为对应yield的值。
+4. 调用`next()`后，会获得一个结果，这个结果包含两个值，`value`表示当前yield的执行结果（或者return的结果）`done`表示生成器执行状态的信息：true/false分别表示执行完毕和还未执行完毕。
+5. 生成器通过`yeild`和`next`使得外部和生成器内部的通信称为可能。
+
+看到这里可能有人要问了，这有什么用呢？和Promise相比有什么好处？请慢慢往下看。
+
+还有一种场景，假设我们要获得一个无限的自然数序列，从小到大一次取出一个来用。由于自然数是无限的，我们不可能一次性用一个数组将它们都生成出来（时间上不允许，空间上也不允许），其实也没有必要。我们只需要在需要获取一个自然数的时候生成出一个就好了。这时使用生成器再合适不过：
+
+```javascript
+// numberGenerator.js
+function *numberGenerator() {
+  let num = 0;
+  while (true) {
+    yield num++;
+  }
+};
+
+const it = numberGenerator();
+let res = it.next();
+console.log(res); // { value: 0, done: false }
+
+res = it.next();
+console.log(res); // { value: 1, done: false }
+
+res = it.next();
+console.log(res); // { value: 2, done: false }
+
+res = it.next();
+console.log(res); // { value: 3, done: false }
+```
+
+由于生成器里面是一个无限while循环，所以`done`一直是`false`。
+
+使用生成器函数需要注意一点，在获得生成器函数的迭代器后，第一次调用其`next()`方法时不需要传参数（尽管你可以这么做）。因为此时还没遇到yield，传了也没意义。
+
+#### 生成器函数的错误处理
+
+可以直接在生成器函数中使用try/catch捕获异常：
+
+```javascript
+// generatorCatchError.js
+function *generator() {
+  try {
+    const x = (yield 'world')();
+    return x;
+  } catch (err) {
+    console.error(err); // TypeError: (intermediate value) is not a function
+  }
+};
+
+const it = generator();
+it.next();
+const res = it.next('bar');
+console.log(res); // { value: undefined, done: true }
+```
+
+由于上面的代码段中有异常，被catch捕获，没有显式调用return语句，所以默认返回值是undefined。
+
+想停止一个生成器函数只需要调用其迭代器的`return`方法：
+
+```javascript
+// generatorStop.js
+function *numberGenerator() {
+  let num = 0;
+  while (true) {
+    yield num++;
+  }
+};
+
+const it = numberGenerator();
+let res = it.next();
+console.log(res); // { value: 0, done: false }
+
+res = it.next();
+console.log(res); // { value: 1, done: false }
+
+res = it.next();
+console.log(res); // { value: 2, done: false }
+
+res = it.next();
+console.log(res); // { value: 3, done: false }
+
+res = it.return(); // stop generator
+console.log(res); // { value: undefined, done: true }
+```
+
+回想Promise部分介绍的链式Promise，虽然避免了嵌套回调问题，但是一连串.then()也让人挺烦的，如果能真正像写同步代码那样写串行异步代码那该多好。实际上使用生成器函数已经可以做到这点。但是为了更好地理解后面的内容，这里还有几个准备工作要做。我们知道在生成器函数中yield一个值的时候，外部可以通过next()拿到这个值，刚才的代码中yield后面都是立即值，如果把这个值换成一个异步函数会怎样？
+
+很自然地，我们会想让代码变成这样：
+
+```javascript
+// generatorReadFileBadExample.js
+const fs = require('fs');
+
+function *generator (){
+	var file1 = yield fs.readFile('a.txt', 'utf8');
+	console.log(file1); // undefined
+};
+
+const it = generator();
+let res = it.next();
+console.log(res); // { value: undefined, done: false }
+res = it.next();
+console.log(res); // { value: undefined, done: true }
+```
+
+但很可惜的是，这样做并不奏效，为什么？
+
+#### 小练习
+
+思考一下为什么上面这段代码不能工作？
+
+解析：
+
+其实仔细思考yield的行为就会发现，`fs.readFile`是一个旧式的异步API，调用它会立即返回undefined，如果没有传入一个回调函数给它，我们无法获得任何信息。那么问题来了，如果还要在生成器函数里调用fs.readFile时传入回调函数，那不是又回到解放前了吗，我们可不想再直接去面对赤裸裸地回调函数。也就是说，将fs.readFile直接在生成器内部执行是不可能的了，那么只能将fs.readFile的执行放到生成器函数外部，换句话说，我们要将fs.readFile连同它的参数通过yield`传递`到外部去执行，我们需要包装一下fs.readFile。将一个函数和一堆参数绑定后塞入另一个新的函数里，叫函数的[柯里化(currying)](https://zh.wikipedia.org/zh/%E6%9F%AF%E9%87%8C%E5%8C%96)，换一种更通俗易懂的讲法：我们把一堆参数固定到一个函数上。
+
+由于在JavaScript中函数是一等对象，所以借助高阶函数的抽象功能，可以写一个帮助方法来对任意在最后一个参数上为回调函数的异步API进行柯里化：
+
+```javascript
+// thunkify.js
+const fs = require('fs');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+readFile('a.txt', 'utf8')((err, data) => {
+  console.log(data); // file a content
+});
+```
+
+我们来尝试一下将柯里化后的旧式异步API和生成器函数结合使用：
+
+```javascript
+// generatorReadFile1.js
+const fs = require('fs');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+function *generator (){
+  const file1 = yield readFile('a.txt', 'utf8');
+  console.log(file1); // undefined
+  const file2 = yield readFile('b.txt', 'utf8');
+  console.log(file2); // undefined
+};
+
+const it = generator();
+let res = it.next();
+res.value((err, data) => {
+  console.log(data); // file a content
+});
+res = it.next();
+res.value((err, data) => {
+  console.log(data); // file b content
+});
+res = it.next();
+console.log(res); // { value: undefined, done: true }
+```
+
+第一次调用next()时，我们从其value中得到了柯里化后的fs.readFile，我们叫它readFile。readFile接受一个回调函数，因此只要传入回调我们就能获得异步调用的结果。很好，我们的第一步目的达到了。但是仔细一看，还是有问题：在生成器函数中我们打印file1和file2结果都是undefined，生成器函数在交出控制权后，控制权转移到外部，异步调用也在外部完成，异步调用的结果也在外面。没关系，我们可以通过`next(value)`将这个异步调用结果带回给生成器函数内部：
+
+```javascript
+// generatorReadFile2.js
+const fs = require('fs');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+function *generator (){
+  const file1 = yield readFile('a.txt', 'utf8');
+  console.log('got ' + file1); // got file a content
+  const file2 = yield readFile('b.txt', 'utf8');
+  console.log('got ' + file2); // got file b content
+};
+
+const it = generator();
+let res = it.next();
+res.value((err, data) => {
+  res = it.next(data);
+  res.value((err, data) => {
+    res = it.next(data);
+    console.log(res); // { value: undefined, done: true }
+  });
+});
+```
+
+非常好，我们成功将异步调用的结果又传回给生成器函数，问题到这一步应该说已经基本解决了。说基本解决是因为调用方式还没有自动化，还需要手动一步步调用`res.value(cb)`，再次发挥JavaScript高阶函数的强大威力，写一个自动执行生成器函数的工具吧：
+
+```javascript
+// generatorAutoRunner.js
+
 // todo
+```
 
-
-### Generator函数
-
-// todo
 
 ## 常用的异步编程库
 
@@ -652,6 +914,8 @@ read是经过Promise化的fs.readFile，调用read会返回一个Promise，一�
 
 ## 更多信息
 
-[(译)深入理解Node.js的事件循环、定时器和process.nextTick()](./(译)深入理解Node.js的事件循环、定时器和process.nextTick().md)
+[(译)深入理解Node.js的事件循环、定时器和process.nextTick()](/2018/10/11/[译]深入理解Node.js的事件循环、定时器和process.nextTick/)
 [Fail Fast](https://www.martinfowler.com/ieeeSoftware/failFast.pdf)
 [error-first](http://nodejs.cn/api/errors.html#errors_error_first_callbacks)
+[Promise/A+规范](http://www.ituring.com.cn/article/66566)
+[柯里化(currying)](https://zh.wikipedia.org/zh/%E6%9F%AF%E9%87%8C%E5%8C%96)

@@ -583,7 +583,7 @@ example 18:
 ```js
 function* gen(x){
 	var y = yield x + 2;
-  	return y;
+  return y;
 }
     
 var g = gen(1);
@@ -869,9 +869,9 @@ var readFile = thunkify(fs.readFile);
     
 co(function*(){
 	var files=[
-    	'./text1.txt',
-      	'./text2.txt',
-      	'./text3.txt'
+    './text1.txt',
+    './text2.txt',
+    './text3.txt'
  	];
  	
  	var p1 = yield readFile(files[0]);
@@ -883,7 +883,7 @@ co(function*(){
  	var p3 = yield readFile(files[2]);
  	console.log(files[2] + ' ->' + p3);
      	
-    return 'done';
+  return 'done';
 });
 ```
 
