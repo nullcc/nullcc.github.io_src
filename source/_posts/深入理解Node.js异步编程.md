@@ -948,7 +948,7 @@ run(generator);
 
 自动运行生成器函数的原理很简单，在生成器函数的迭代器上执行next时，返回的是一个柯里化后的异步函数，我们需要调用这个异步函数，同时传入一个参数，这个参数是一个回调函数，它是自动执行的关键，该回调函数内部在获取到结果值的时候，需要调用next方法将这个结果值带回给生成器函数内部，如此循环下去直到结束。
 
-### yield *语句
+##### yield *语句
 
 普通的yield语句后面跟一个异步操作，yield *语句后面可以跟另一个可迭代对象，在实际使用中yield *后面一般要跟另一个Generator函数：
 
@@ -1075,7 +1075,7 @@ co(function *generator() {
 });
 ```
 
-## async/await
+### async/await
 
 直到ES 7中出现async/await之前，业界普遍都是采用co库的方案。
 
@@ -1115,7 +1115,7 @@ const asyncReadFile = async function (){
 asyncReadFile();
 ```
 
-## 使用事件进行异步编程
+### 使用事件进行异步编程
 
 除了回调函数、Promise、Generator、async/await这些异步方案以外，还有一种常见的异步方案：事件。在Node.js中使用事件编程十分简单，下面是一个示例：
 
