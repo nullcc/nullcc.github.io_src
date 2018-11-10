@@ -9,6 +9,13 @@ categories: 编程语言
 
 <!--more-->
 
+## 准备工作
+
+为了保证文章内所列代码能够正确运行，建议安装babel： 
+
+```
+npm install babel-cli -g
+```
 
 ## 写在阅读之前
 
@@ -879,7 +886,7 @@ const thunkify = fn => {
 
 const readFile = thunkify(fs.readFile);
 
-function *generator (){
+function *generator() {
   const file1 = yield readFile('a.txt', 'utf8');
   console.log('got ' + file1); // got file a content
   const file2 = yield readFile('b.txt', 'utf8');
@@ -895,22 +902,248 @@ res.value((err, data) => {
     console.log(res); // { value: undefined, done: true }
   });
 });
+
 ```
 
-非常好，我们成功将异步调用的结果又传回给生成器函数，问题到这一步应该说已经基本解决了。说基本解决是因为调用方式还没有自动化，还需要手动一步步调用`res.value(cb)`，再次发挥JavaScript高阶函数的强大威力，写一个自动执行生成器函数的工具吧：
+非常好，我们成功地将异步调用的结果又传回给生成器函数，问题到这一步应该说已经基本解决了。说基本解决是因为调用方式还没有自动化，还需要手动一步步调用`res.value(cb)`，再次发挥JavaScript高阶函数的强大威力，写一个自动执行生成器函数的工具吧：
 
 ```javascript
 // generatorAutoRunner.js
+const fs = require('fs');
 
-// todo
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+function *generator() {
+  const file1 = yield readFile('a.txt', 'utf8');
+  console.log('got ' + file1); // got file a content
+  const file2 = yield readFile('b.txt', 'utf8');
+  console.log('got ' + file2); // got file b content
+};
+
+const run = g => {
+  const it = g();
+  
+  function next(err, data) {
+    const res = it.next(data);
+    if (res.done) {
+      return res.value;
+    }
+    res.value(next);
+  }
+
+  next();
+};
+
+run(generator);
 ```
 
+自动运行生成器函数的原理很简单，在生成器函数的迭代器上执行next时，返回的是一个柯里化后的异步函数，我们需要调用这个异步函数，同时传入一个参数，这个参数是一个回调函数，它是自动执行的关键，该回调函数内部在获取到结果值的时候，需要调用next方法将这个结果值带回给生成器函数内部，如此循环下去直到结束。
+
+### yield *语句
+
+普通的yield语句后面跟一个异步操作，yield *语句后面可以跟另一个可迭代对象，在实际使用中yield *后面一般要跟另一个Generator函数：
+
+```javascript
+var fs = require('fs');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+    
+function *generator() {
+	const f1 = yield readFile('a.txt', 'utf8');
+	console.log(f1); // file a content
+
+  const f_ = yield *anotherGenerator(); //此处插入了另外一个异步流程
+  console.log(f_); // file c content
+
+	var f3 = yield readFile('b.txt', 'utf8');
+	console.log(f3); // file b content
+};
+    
+const anotherGenerator = function* (){
+	const f = yield readFile('c.txt', 'utf8');
+  return f;
+}
+    
+function run(g) {
+	const it = g();
+
+	function next(err, data) {
+		const result = it.next(data);
+		if (result.done) return;
+		result.value(next);
+	}
+
+	next();
+}
+    
+run(generator);  //自动执行
+```
+
+在使用生成器函数作为异步控制流的时期，业界比较流行的自动执行的解决方案是co库：
+
+```javascript
+// co1.js
+const fs = require('fs');
+const co = require('co');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+co(function *generator() {
+  const file1 = yield readFile('a.txt', 'utf8');
+  console.log('got ' + file1); // got file a content
+  const file2 = yield readFile('b.txt', 'utf8');
+  console.log('got ' + file2); // got file b content
+});
+```
+
+还可以直接利用co库并发地执行一系列操作：
+
+```javascript
+// co2.js
+const fs = require('fs');
+const co = require('co');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+co(function *generator() {
+  const files = ['a.txt', 'b.txt'];
+  const res = yield files.map(file => readFile(file, 'utf8'));
+  console.log(res); // [ 'file a content', 'file b content' ]
+});
+```
+
+还可以用yield并发地执行一个可迭代对象中的异步操作：
+
+```javascript
+// coWithArray.js
+const fs = require('fs');
+const co = require('co');
+
+const thunkify = fn => {
+  return function() {
+    const args = [].slice.call(arguments);
+    return (cb) => {
+      fn.apply(null, args.concat(cb));
+    };
+  };
+};
+
+const readFile = thunkify(fs.readFile);
+
+co(function *generator() {
+  const files = ['a.txt', 'b.txt'];
+  const results = yield* files.map(file => {
+    return readFile(file, 'utf8');
+  });
+  console.log(results); // [ 'file a content', 'file b content' ]
+});
+```
+
+## async/await
+
+直到ES 7中出现async/await之前，业界普遍都是采用co库的方案。
+
+async和await是ES 7中的新语法，新到连ES 6都不支持，但是可以通过Babel一类的预编译器处理成ES 5的代码。目前比较一致的看法是async和await是js对异步的终极解决方案。要注意的一个点是，await只能用在async函数中，但async函数中未必一定要有await。
+
+立即尝试看看：
+
+```js
+// async.js
+const promiseWrapper = fn => {
+  return function () {
+    const args = [].slice.call(arguments); // convert arguments to a real array
+    return new Promise((resolve, reject) => {
+      const cb = (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      };
+      fn.apply(null, args.concat(cb));
+    });
+  };
+};
+
+const fs = require('fs');
+
+const readFile = promiseWrapper(fs.readFile);
+    
+const asyncReadFile = async function (){
+	const f1 = await readFile('a.txt', 'utf8');
+	const f2 = await readFile('b.txt', 'utf8');
+	console.log(f1); // file a content
+	console.log(f2); // file b content
+};
+    
+asyncReadFile();
+```
+
+## 使用事件进行异步编程
+
+除了回调函数、Promise、Generator、async/await这些异步方案以外，还有一种常见的异步方案：事件。在Node.js中使用事件编程十分简单，下面是一个示例：
+
+```javascript
+// event.js
+var events = require('events');
+
+var eventEmitter = new events.EventEmitter();
+
+eventEmitter.on('news', payload => {
+  console.log(payload.data);
+});
+
+eventEmitter.on('logout', payload => {
+  console.log(`User logout: ${payload.data}`);
+});
+
+eventEmitter.emit('news', { data: 'Hello world!'});
+eventEmitter.emit('logout', { data: 'Foo'});
+```
+
+事件的一大特定是它的解耦能力，事件相比方法调用的耦合度要低一些。在一些业务场景下，模块之间可以通过事件来解耦。
 
 ## 常用的异步编程库
 
 [async](https://github.com/caolan/async)
 [bluebird](https://github.com/petkaantonov/bluebird)
-
+[co](https://github.com/tj/co)
 
 ## 更多信息
 

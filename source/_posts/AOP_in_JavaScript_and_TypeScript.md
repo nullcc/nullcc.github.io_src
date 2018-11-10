@@ -154,7 +154,7 @@ So, we give up this solution even it may work.
 
 Let's look at an interesting model first: middleware onion model in [Koa](https://koajs.com/):
 
-![Koa middileware onion model](./images/koa_onion.png)
+![Koa middileware onion model](/assets/images/post_imgs/koa_onion.png)
 
 See [base driver](./src/driver/staticOnion/base.ts) and [static onion driver](./src/driver/staticOnion/staticOnion.ts).
 
