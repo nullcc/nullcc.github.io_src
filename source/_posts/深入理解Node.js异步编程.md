@@ -21,7 +21,7 @@ npm install babel-cli -g
 
 开发者需要注意区分JavaScript和JavaScript运行时（宿主环境）这两个概念。严格来说，JavaScript单纯指这门编程语言，没有其他附加的含义。对于宿主环境，如果是Web前端开发，默认是浏览器，如果是Node.js，则指的是node.js运行时。不同的宿主环境有很大区别，比如浏览器和node.js的事件循环机制就有所区别。另外像`console`这个对象（没错，就是你经常用的console.log的那个console）也是由宿主环境提供的，它并不是JavaScript的一部分。
 
-本文主要探讨的是node.js中的异步编程，虽然浏览器或其他宿主环境中的异步编程和node.js有很多相似的地方，但是为了不产生歧义或误导这里还是明确指出具体的宿主环境。
+需要特别说明的是，本文的事件循环部分主要探讨的宿主环境是node.js，异步编程部分中的绝大多数内容都适用于目前常见的宿主环境，如浏览器、Node.js等。要注意的是虽然不同宿主环境有很多相似的地方，但是我们还是要注意区分他们的不同点。
 
 
 ## 并发模型和事件循环
@@ -44,6 +44,13 @@ while (queue.waitForMessage()) {
 
 
 ## JavaScript异步编程的几种常见模式
+
+* 回调函数
+* Promise
+* Generation Function
+* async/await
+* Event
+
 
 ### 回调函数(callback)
 
