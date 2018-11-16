@@ -78,7 +78,7 @@ Redis的LRU算法并不是一个准确的LRU实现。这意味着Redis无法选�
 
 Redis不使用一个真正的LRU算法实现的原因是它需要消耗更多内存。然而，对于使用Redis的应用来说近似LRU算法和真正的LRU算法几乎是等价的。下面是Redis使用的近似LRU算法和真正的LRU算法的对比图。
 
-![edis使用的近似LRU算法和真正的LRU算法的对比](/assets/images/post_imgs/lru_comparison.png)
+![redis使用的近似LRU算法和真正的LRU算法的对比](/assets/images/post_imgs/lru_comparison.png)
 
 使用一个有给定数量的键填充的Redis服务器来进行测试并生成上面的图。键被从头到尾地访问，因此使用LRU算法将淘汰那些首先被访问的键。之后又有50%的键被加入其中，迫使一半的旧键被淘汰。
 

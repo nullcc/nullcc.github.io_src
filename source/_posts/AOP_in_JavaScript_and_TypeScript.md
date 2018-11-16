@@ -25,7 +25,7 @@ AOP makes it possible to resolve this problem elegantly.
 
 ## AOP vs OOP
 
-We are familiar with Object Oriented Programming (OOP). When we get a requirements, firstly we analyze the requirements and extract some domain models. Every domain model has its own attributes and methods. People using encapsulatioBase on thesen, composition, inheritance, polymorphism and design patterns to building software and practice the thinking of OOP.
+We are familiar with Object Oriented Programming (OOP). When we get a requirements, firstly we analyze the requirements and extract some domain models. Every domain model has its own attributes and methods. People using encapsulation, composition, inheritance, polymorphism and design patterns to building software and practice the thinking of OOP.
 
 If you have experiences about building software with OOP you will find that OOP is to model static things.
 In other words, OOP is for nouns. For example, we have a `Employee` class with attributes `name`, `age`, `title` and `department`, with methods `work`, `takeABreak` and `loginAdminSystem`. Attributes describe characteristics of objects, and methods are the operations objects can execute. Base on these, we can write some OO code:
