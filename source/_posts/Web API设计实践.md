@@ -346,7 +346,7 @@ X-RateLimit-Limit: 60
 
 现代Web应用中大量使用Ajax来获取数据，但浏览器的同源策略限制了这一技术的使用。同源策略简单说就是：协议名、主机、端口号这三个数据唯一确定了一个“源”。处于安全方面的考虑，默认情况下浏览器不允许通过Ajax请求不同“源”下的资源。在服务端经过特殊配置后允许不同源的客户端请求，这称为“跨域”。但是既然是Web API，就是要公开出来给其他人用，势必需要支持跨域，否则公开没有任何意义。
 
-目前Web API 主流的跨域方案是跨域资源共享(Cross-Origin Resource Sharing, CORS)[https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS]，如果需要允许某个域具有访问我方服务器，可以在请求头中带上：
+目前Web API 主流的跨域方案是跨域资源共享[Cross-Origin Resource Sharing](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS)，如果需要允许某个域具有访问我方服务器，可以在请求头中带上：
 
 ```
 Access-Control-Allow-Origin: http://www.example.com
@@ -378,3 +378,10 @@ Access-Control-Allow-Origin: *
 </cross-domain-policy>
 ```
 
+## 参考资料
+
+- [OAuth 2.0介绍](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
+- [常用的Web API HTTP状态码](http://www.runoob.com/http/http-status-codes.html)
+- [http-caching](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching?hl=zh-cn)
+- [HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
+- [CORS](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS)
