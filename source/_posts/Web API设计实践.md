@@ -346,6 +346,8 @@ X-RateLimit-Limit: 60
 
 现代Web应用中大量使用Ajax来获取数据，但浏览器的同源策略限制了这一技术的使用。同源策略简单说就是：协议名、主机、端口号这三个数据唯一确定了一个“源”。处于安全方面的考虑，默认情况下浏览器不允许通过Ajax请求不同“源”下的资源。在服务端经过特殊配置后允许不同源的客户端请求，这称为“跨域”。但是既然是Web API，就是要公开出来给其他人用，势必需要支持跨域，否则公开没有任何意义。
 
+其实有一种方式可以绕过浏览器同源策略（需要客户端和服务器端做一定的支持），就是[JSONP](http://www.runoob.com/json/json-jsonp.html)，但实际上JSONP称不上是什么特别优秀的实践，很多时候是处于无奈才使用。所以如果不是特别需要，建议不要使用JSONP。
+
 目前Web API 主流的跨域方案是跨域资源共享[Cross-Origin Resource Sharing](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS)，如果需要允许某个域具有访问我方服务器，可以在请求头中带上：
 
 ```
@@ -384,4 +386,5 @@ Access-Control-Allow-Origin: *
 - [常用的Web API HTTP状态码](http://www.runoob.com/http/http-status-codes.html)
 - [http-caching](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching?hl=zh-cn)
 - [HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
+- [JSONP](http://www.runoob.com/json/json-jsonp.html)
 - [CORS](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS)
