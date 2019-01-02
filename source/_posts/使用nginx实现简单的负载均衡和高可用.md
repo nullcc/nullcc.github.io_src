@@ -1,5 +1,5 @@
 ---
-title: 使用nginx实现简单的负载均衡和高可用.md
+title: 使用nginx实现简单的负载均衡和高可用
 date: 2018-11-27
 tags: [高可用]
 categories: web后端
