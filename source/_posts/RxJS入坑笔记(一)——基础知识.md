@@ -142,7 +142,7 @@ RxJS有一个核心类型Observable，以及围绕Observable的一些其他类�
 | 拉取  | Function | Iterator
 | 推送  | Promise | Observable
 
-当调用一个函数时，实际上是主动地拉取一个值，而使用迭代器时我们可以主动地拉取多个值。在异步编程中，Promise一旦被创建出来就会立即执行，而后的then实际上是接受Promise决议后推送过来的值，Promise至多只能推送一个值。Observable则可以同步或异步地推送多个值。
+当调用一个函数时，实际上是主动地拉取一个值，而使用迭代器时我们可以主动地拉取多个值。在异步编程中，Promise一旦被创建出来就会立即执行，而后的then实际上是接受Promise决议后推送过来的值，且Promise至多只能推送一个值。Observable则可以同步或异步地推送多个值。
 
 ### 基本模式
 
@@ -165,7 +165,7 @@ RxJS有一个核心类型Observable，以及围绕Observable的一些其他类�
 - throwError
 - timer
 
-### create操作符
+#### create操作符
 
 ```typescript
 const observable = Observable.create(observer => {
@@ -205,7 +205,7 @@ const subscribe = observable.subscribe(
 );
 ```
 
-### empty操作符
+#### empty操作符
 
 empty操作符会直接使Observable直接结束：
 
@@ -225,7 +225,7 @@ const subscribe = observable.subscribe({
 直接打印出'complete'。
 
 
-### from操作符
+#### from操作符
 
 from操作符可以从一个可迭代对象(Array, Map, Promise)中创建一个Observable对象：
 
@@ -280,11 +280,11 @@ const subscribe = observable.subscribe(
 
 这段代码直接打印出100。
 
-### fromEvent操作符
+#### fromEvent操作符
 
 fromEvent操作符在“快速开始”一节中已经展示了，fromEvent接受一个`FromEventTarget`对象和一个event name。
 
-### interval操作符
+#### interval操作符
 
 interval操作符非常简单，接受一个以毫秒为单位的时间参数，每隔这个时间发出一个自增的数字：
 
@@ -298,7 +298,7 @@ const subscribe = observable.subscribe(
 )
 ```
 
-### of操作符
+#### of操作符
 
 of操作符接收不定个数的参数，并依次发射每个参数：
 
@@ -335,7 +335,7 @@ const subscribe = observable.subscribe(
 {a: 1, b: 2}
 ƒ () { console.log(10); }
 
-### range操作符
+#### range操作符
 
 可以使用range操作符指定整数的起点和终点（闭区间），并依次发出这些数字：
 
@@ -351,7 +351,7 @@ const subscribe = observable.subscribe(
 
 将打印出1到10的整数。
 
-### throwError操作符
+#### throwError操作符
 
 throw操作符发出一个异常：
 
@@ -373,7 +373,7 @@ const subscribe = observable.subscribe({
 
 这段代码将打印错误："Got an error."。
 
-### timer操作符
+#### timer操作符
 
 timer操作符可以接受两个参数，第一个参数表示经过多长时间后发出一个值（从0开始自增），第二个参数表示之后每隔多长时间发出一个值：
 
@@ -402,3 +402,144 @@ const subscribe = observable.subscribe(
 ```
 
 这段代码将在1000毫秒后发出1，之后每隔3000毫秒发出自增的数字。
+
+### 过滤操作符——Filtering Operators
+
+#### debounceTime操作符
+
+debounceTime操作符会丢弃所有在指定时间间隔内发出的值。在刚才通过GitHub API获取用户信息的例子中已经演示了如何使用，这里再看下面这个计数器的例子，我们限制了用户点击"+"和"-"的速度每秒不能超过一次：
+
+```html
+<div>
+  <h1>Simple Counter</h1>
+    <button id='decrBtn'>-</button>
+    <button id='incrBtn'>+</button>
+    <p id='counter'>0</p>
+</div>
+```
+
+```typescript
+const inceStream = document.querySelector('#incrBtn');
+const decrStream = document.querySelector('#decrBtn');
+
+const s1 = fromEvent(inceStream, 'click').mapTo(1);
+const s2 = fromEvent(decrStream, 'click').mapTo(-1);
+
+merge(s1, s2)
+    .debounce(() => timer(1000))
+    .startWith(0)
+    .scan((acc, curr) => acc + curr)
+    .subscribe(
+      res => {
+        const counter = document.getElementById('counter');
+        counter.innerText = res.toString();
+      }
+    );
+```
+
+#### distinctUntilChanged操作符
+
+distinctUntilChanged控制了只有在当前值和上一次值不同时才发出值，它经常和debounceTime操作符一起用来控制对事件流进行控制。比如我们将一个文本框的输入内容作为查询参数，构造请求发往后端。distinctUntilChanged和debounceTime配合使用可以简单有效地控制该文本框的输入事件触发发送HTTP请求的频率。GitHub API的例子很好地展示了这种用法。
+
+下面这个例子只会发出连续相同的值序列中的第一个值：
+
+```typescript
+const observable = Observable.from([1, 1, 2, 1, 2, 3, 3]);
+
+const subscribe = observable
+  .distinctUntilChanged()
+  .subscribe(
+    val => {
+      console.log(val);
+    }
+  );
+```
+
+打印出值如下：
+
+1
+2
+1
+2
+3
+
+#### filter操作符
+
+filter操作符很好理解，给定一个过滤条件，只发出满足条件的值。下面的例子只会发出偶数值：
+
+```typescript
+const observable = Observable.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+const subscribe = observable
+  .filter(num => num % 2 === 0)
+  .subscribe(
+    val => {
+      console.log(val);
+    }
+  );
+```
+
+打印：
+
+0
+2
+4
+6
+8
+
+### take操作符
+
+take操作符会发出序列的前n个值：
+
+```typescript
+const observable = Observable.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+const subscribe = observable
+  .take(3)
+  .subscribe(
+    val => {
+      console.log(val);
+    }
+  );
+```
+
+打印：
+
+0
+1
+2
+
+#### takeUntil操作符
+
+takeUntil可以时在某个事件发生时，让一个observable直接发送complete信息：
+
+```html
+<button id='btn'>Stop!</button>
+```
+
+```typescript
+const btn = document.querySelector('#btn');
+const btnObservable = fromEvent(btn, 'click');
+
+const intervalObservable = interval(1000);
+
+const subscribe = intervalObservable
+  .takeUntil(btnObservable)
+  .subscribe({
+    next: val => {
+      console.log(val);
+    },
+    error: err => {
+      console.error(err);
+    },
+    complete: () => {
+      console.log('complete!');
+    }
+  });
+```
+
+运行上面的代码，一开始将以1000毫秒为间隔自增打印自然数，当按下"Stop!"按钮时，intervalObservable结束，并打印出"complete!"。
+
+### 错误处理操作符——Error Handling Operators
+
+// todo
