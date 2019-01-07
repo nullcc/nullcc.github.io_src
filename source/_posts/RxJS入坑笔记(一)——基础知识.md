@@ -487,7 +487,7 @@ const subscribe = observable
 6
 8
 
-### take操作符
+#### take操作符
 
 take操作符会发出序列的前n个值：
 
