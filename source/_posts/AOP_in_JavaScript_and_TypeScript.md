@@ -11,14 +11,11 @@ Write something about aop in JavaScript and TypeScript.
 
 ## AOP Overview
 
-Aspect Oriented Programming (AOP), Chinese meaning is "面向切面编程". We can separate parts of business 
-logic with AOP to reduce coupling of them.
+Aspect Oriented Programming (AOP), Chinese meaning is "面向切面编程". We can separate parts of business logic with AOP to reduce coupling of them.
 
-Let's image a very common situation, beside execute necessary automated operations, we also need to do 
-something like logging, save screenshot when we use selenium-webdriver to do web automated testing. It is obvious that these operations is not strongly related with business logic, but we sure need them. Now the situation is that we need these functions but we no hope to include these code explicitly in modeling stage. So we want a new way to reslove it.
+Let's image a very common situation, beside execute necessary automated operations, we also need to do something like logging, save screenshot when we use selenium-webdriver to do web automated testing. It is obvious that these operations is not strongly related with business logic, but we sure need them. Now the situation is that we need these functions but we no hope to include these code explicitly in modeling stage. So we want a new way to reslove it.
 
-For example, we want to recode time consuming and take a screenshot after every step in web automated testing. The simplest way is to put the code which record time consuming and take a screenshot in every step. But disadvantages of this approach is if we have many step, things will become uncontrollable. It's 
-impossible to maintain thousands of steps which there are lots of similar code in every step.
+For example, we want to recode time consuming and take a screenshot after every step in web automated testing. The simplest way is to put the code which record time consuming and take a screenshot in every step. But disadvantages of this approach is if we have many step, things will become uncontrollable. It's impossible to maintain thousands of steps which there are lots of similar code in every step.
 
 AOP makes it possible to resolve this problem elegantly.
 
@@ -27,8 +24,7 @@ AOP makes it possible to resolve this problem elegantly.
 
 We are familiar with Object Oriented Programming (OOP). When we get a requirements, firstly we analyze the requirements and extract some domain models. Every domain model has its own attributes and methods. People using encapsulation, composition, inheritance, polymorphism and design patterns to building software and practice the thinking of OOP.
 
-If you have experiences about building software with OOP you will find that OOP is to model static things.
-In other words, OOP is for nouns. For example, we have a `Employee` class with attributes `name`, `age`, `title` and `department`, with methods `work`, `takeABreak` and `loginAdminSystem`. Attributes describe characteristics of objects, and methods are the operations objects can execute. Base on these, we can write some OO code:
+If you have experiences about building software with OOP you will find that OOP is to model static things. In other words, OOP is for nouns. For example, we have a `Employee` class with attributes `name`, `age`, `title` and `department`, with methods `work`, `takeABreak` and `loginAdminSystem`. Attributes describe characteristics of objects, and methods are the operations objects can execute. Base on these, we can write some OO code:
 
 ```typescript
 class Employee {
