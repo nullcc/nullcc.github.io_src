@@ -19,7 +19,7 @@ categories: web后端
 需要说明的是，由于本文是一个搭建教程，所以只会列出最基本的一些目录和文件，随着后续教程的深入，将添加更多的目录和文件。先来快速浏览一下这个demo中项目的文件结构：
 
 ```
-openresty-basic-demo
+views-count
 |-- bin
 |   |-- start.sh
 |   |-- stop.sh

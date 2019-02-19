@@ -144,7 +144,7 @@ registerHooksForMethods方法接受三个参数，用来将一组原方法分别
 
 ## 解决方案2 ——— 静态洋葱模型
 
-静态洋葱模型受到[Koa](https://koajs.com/)的启发，这个模型很有一次，对一个方法的执行流程就像一个箭头通过一整颗洋葱：
+静态洋葱模型受到[Koa](https://koajs.com/)的启发，这个模型很有意思，对一个方法的执行流程就像一个箭头通过一整颗洋葱：
 
 ![Koa middileware onion model](/assets/images/post_imgs/koa_onion.png)
 
