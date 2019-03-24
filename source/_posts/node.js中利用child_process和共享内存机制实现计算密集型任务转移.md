@@ -70,7 +70,6 @@ const fetchKnownFailureRules = () => {
   );
   child.on('message', res => {
     console.log(`Got known failure issue name: ${res}`);
-    console.log(new Date().getTime() - start);
     child.kill();
   });
   child.send(data.key);
