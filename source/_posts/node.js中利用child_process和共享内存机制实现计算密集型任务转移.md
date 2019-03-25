@@ -54,8 +54,8 @@ const fetchKnownFailureRules = () => {
   // omit...
 }
 
-const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, options?: ForkOptions): Promise<ChildProcess> => {
-  return new Promise<ChildProcess>((resolve, reject) => {
+const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, options?: ForkOptions): Promise<string | null> => {
+  return new Promise<string | null>((resolve, reject) => {
     const child = fork(path, args, options);
 
     child.on('message', res => {
