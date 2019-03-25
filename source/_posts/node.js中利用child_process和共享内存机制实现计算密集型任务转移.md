@@ -47,38 +47,72 @@ node.js是单进程单线程运行的，如果遇到一些计算密集型的操�
 主进程：
 ```js
 // master process
-const shm = require('shm-typed-array');
-const fork = require('child_process').fork;
+import * as shm from 'shm-typed-array';
+import { fork, ChildProcess, ForkOptions } from 'child_process';
 
 const fetchKnownFailureRules = () => {
   // omit...
 }
 
+const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, options?: ForkOptions): Promise<ChildProcess> => {
+  return new Promise<ChildProcess>((resolve, reject) => {
+    const child = fork(path, args, options);
+
+    child.on('message', res => {
+      child.kill();
+      resolve(res);
+    });
+
+    child.on('error', err => {
+      child.kill();
+      reject(err);
+    });
+
+    child.stderr.on('data', data => {
+      child.kill();
+      reject(data.toString());
+    });
+
+    child.on('exit', (code, signal) => {
+      child.kill();
+      reject();
+    });
+    child.send(memoryKey);
+  });
+};
+
 (async () => {
-  const knownFailureRules = await fetchKnownFailureRules();
+  const knownFailureRules = await MiscUtils.fetchKnownFailureRules(GCI_KNOWN_FAILURE_RULES_API);
   // convert rules array to Uint16Array
   const arr = Uint16Array.from(Buffer.from(JSON.stringify(knownFailureRules)));
   // Create shared memory
   const data = shm.create(arr.length, 'Buffer');
+  if (!data) {
+    return;
+  }
   // copy rules Uint16Array into shared memory
   for (let i = 0; i < data.length; i++) {
     data[i] = arr[i];
   }
-   const child = fork(
-    'match-known-failure.js',
-    ['test-name', 'error-message'] // as a demo, test name and error message are fake
-  );
-  child.on('message', res => {
-    console.log(`Got known failure issue name: ${res}`);
-    child.kill();
-  });
-  child.send(data.key);
+
+  try {
+    const issueName = await promiseFork(
+      data.key,
+      'match-known-failure.js',
+      ['test-name', 'error-message'] // as a demo, test name and error message are fake
+      { silent: true }
+    );
+    console.log(issueName);
+  } catch (err) {
+    console.log(err);
+  }
 })();
+
 ```
 
 子进程：
 ```js
-// child process
+// match-known-failure.js
 const shm = require('shm-typed-array');
 
 const matchKnownFailure = () => {
