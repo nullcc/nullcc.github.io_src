@@ -1,5 +1,5 @@
 ---
-title: node.js中利用child_process和共享内存机制实现计算密集型任务转移
+title: node.js中利用IPC和共享内存机制实现计算密集型任务转移
 date: 2019-03-23
 tags: [node]
 categories: 编程语言
@@ -36,7 +36,7 @@ node.js是单进程单线程运行的，如果遇到一些计算密集型的操�
 
 ## 解决方案
 
-既然node主进程需要处理大量异步事件，那一个可行的办法就是将这些计算密集型操作从主进程中分离出去，可以考虑使用node的child_process模块fork出一个子进程出来执行这些消耗CPU的操作。由于这些子进程只负责处理计算，并不负责处理异步事件，所以不用担心之前在主进程中发生的问题。
+既然node主进程需要处理大量异步事件，那一个可行的办法就是将这些计算密集型操作从主进程中分离出去，可以考虑使用IPC的方式，利用其它进程来处理这部分计算工作。我们可以使用node的child_process模块fork出一个子进程出来执行这些消耗CPU的操作。由于这些子进程只负责处理计算，并不负责处理异步事件，所以不用担心之前在主进程中发生的问题。
 
 上文中我有一个情况还未说明，上文提到的known failure rules是需要从某个外部HTTP API中获取，最开始的做法是在初始化测试框架的时候获取一次，作为参数依赖注入给end run hook，在end run hook中调用检测函数进行匹配。很容易想到用child_process生成一个子进程，并将这个很大规则列表传递给子进程的方式。首先我们不可能在每个子进程中单独去获取，因为这效率太低了，那就只能从主进程向子进程传递这个列表了。命令行参数只能传递一些比较短的参数，而且就算能用命令行参数传递，300KB+的数据量也需要一次内存申请和复制，效率也不高。
 
@@ -123,16 +123,38 @@ const testName = process.argv[2];
 const errorMessage = process.argv[3];
 
 process.on('message', async key => {
-  // get access to shared memory
+  // Get access to shared memory
   const data = shm.get(key, 'Buffer');
-  while (!data) {
-    await delay(50);
+  if (data) {
+    const rules = JSON.parse(data.toString());
+    const res = matchKnownFailure(testName, errorMessage, rules);
+    process.send(res);
   }
-  const rules = JSON.parse(data.toString());
-  const res = matchKnownFailure(testName, errorMessage, rules);
-  process.send(res);
 });
 ```
+
+另外共享内存区域的大小也是有限制的，我们需要在程序结束时手动释放这部分内存，其中`sharedMemoryKey`是次向操作系统申请共享内存时得到的一个唯一key值，代码如下：
+
+```js
+async clearSharedMemory(sharedMemoryKey) {
+  return new Promise((resolve, reject) => {
+    console.log('clear shared memory...');
+    exec(`ipcrm -M ${sharedMemoryKey}`, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      }
+      resolve();
+    });
+  });
+}
+
+// 进程结束时清理shared memory
+process.on('exit',  async () => {
+  await knownFailureFinder.clearSharedMemory();
+});
+```
+
+为了保持简单这里只列出了当'exit'事件发生的处理，其实在异常发生或者程序收到一些系统信号时也应该做这个清除处理。
 
 ## 其他解决方案
 
