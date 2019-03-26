@@ -133,7 +133,7 @@ process.on('message', async key => {
 });
 ```
 
-另外共享内存区域的大小也是有限制的，我们需要在程序结束时手动释放这部分内存，其中`sharedMemoryKey`是次向操作系统申请共享内存时得到的一个唯一key值，代码如下：
+另外共享内存区域的大小也是有限制的，我们需要在程序结束时手动释放这部分内存，其中`sharedMemoryKey`是向操作系统申请共享内存时得到的一个唯一key值，代码如下：
 
 ```js
 async clearSharedMemory(sharedMemoryKey) {
@@ -150,7 +150,7 @@ async clearSharedMemory(sharedMemoryKey) {
 
 // 进程结束时清理shared memory
 process.on('exit',  async () => {
-  await knownFailureFinder.clearSharedMemory();
+  await knownFailureFinder.clearSharedMemory(sharedMemoryKey);
 });
 ```
 
