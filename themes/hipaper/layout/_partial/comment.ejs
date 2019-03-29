@@ -91,5 +91,6 @@
 		</div>
 		<!-- City版安装代码已完成 -->
 	</div>
-
+<% } else if (theme.gitalk.on) {%>
+	<%- partial('comments/gitalk') %>
 <% } %>

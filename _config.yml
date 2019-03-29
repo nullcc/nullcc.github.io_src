@@ -92,6 +92,6 @@ deploy:
     repo: https://github.com/nullcc/nullcc.github.io.git
     branch: master
 
-  - type: git
-    repo: root@140.143.93.78:/var/repo/hexo_static
-    branch: master
+  # - type: git
+  #   repo: root@140.143.93.78:/var/repo/hexo_static
+  #   branch: master

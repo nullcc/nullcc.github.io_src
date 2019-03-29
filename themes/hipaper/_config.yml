@@ -75,9 +75,16 @@ search:
 # comment ShortName, you can choose only ONE to display.
 duoshuo_shortname: 
 disqus_shortname: 
-livere_shortname: MTAyMC8zMjMxOS84ODgw
+# livere_shortname: MTAyMC8zMjMxOS84ODgw
 uyan_uid: 
 wumii: 
+gitalk:
+  on: true
+  owner: nullcc
+  repo: nullcc-blog-comments
+  admin: ['nullcc']
+  clientID: 4010e28e5153ab82b468
+  clientSecret: 217df2318bd891ba87b82dae5d67d7ae77bc1f17
 
 
 # Code Highlight theme
