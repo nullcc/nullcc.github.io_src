@@ -38,32 +38,34 @@ categories: 编程语言
 
 首先创建一个hello.cc：
 
-    // hello.cc
-    #include <node.h>
+```C++
+// hello.cc
+#include <node.h>
 
-    namespace demo {
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+namespace demo {
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        void Method(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-            args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
-        }
+    void Method(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, "world"));
+    }
 
-        void init(Local<Object> exports) {
-            NODE_SET_METHOD(exports, "hello", Method);
-        }
+    void init(Local<Object> exports) {
+        NODE_SET_METHOD(exports, "hello", Method);
+    }
 
-        NODE_MODULE(addon, init)
-    }  // namespace demo
+    NODE_MODULE(addon, init)
+}  // namespace demo
+```
 
 这个最简单的例子，已经出现了一些我们完全没有接触过的东西。大致解释一下：
 
-1. 函数Method的参数类型是FunctionCallbackInfo<Value>&，FunctionCallbackInfo
+1. 函数Method的参数类型是`FunctionCallbackInfo<Value>&`。
 2. Isolate，英文意思是“隔离”，在这里Isolate指的是一个独立的V8 runtime，可以理解为一个独立的V8执行环境，它包括了自己的堆管理器、GC等组件。后续的很多操作都要依赖于这个Isolate，后面我们会看到在很多操作中，都会使用Isolate的实例作为一个上下文传入。
 (注：一个给定的Isolate在同一时间只能被一个线程访问，但如果有多个不同的Isolate，就可以给多个线程同时访问。不过，一个Isolate还不足以运行脚本，你还需要一个全局对象，一个执行上下文通过指定一个全局对象来定义一个完整的脚本执行环境。因此，可以有多个执行上下文存在于一个Isolate中，而且它们还可以简单安全地共享它们的全局对象。这是因为这个全局对象实际上属于Isolate，而却这个全局对象被Isolate的互斥锁保护着。)
 3. 返回值需要用args.GetReturnValue().Set()来设置。
@@ -80,14 +82,16 @@ NODE_MODULE这行后面并没有分号(;)，因为它并不是一个函数，你
 
 写好源代码后我们就要把它编译成二进制的addon.node文件了。binding.gyp文件用来描述我们模块的构建配置，这个文件的内容是JSON形式的：
 
-    {
-        "targets": [
-            {
-                "target_name": "addon",
-                "sources": [ "hello.cc" ]
-            }
-        ]
-    }
+```json
+{
+    "targets": [
+        {
+            "target_name": "addon",
+            "sources": [ "hello.cc" ]
+        }
+    ]
+}
+```
 
 实施构建操作需要用到node-gyp，如果尚未安装的话，需要运行(可能要用到sudo)：
 
@@ -115,11 +119,13 @@ build成功后，这个二进制的C++扩展就可以在node.js中使用require�
 
 由于扩展的二进制文件的存放位置会根据编译方式不同而变化(有可能放在build/Debug/目录)，所以可以用这种方式来引入扩展：
 
-    try {
-        return require('./build/Release/addon.node');
-    } catch (err) {
-        return require('./build/Debug/addon.node');
-    }
+```js
+try {
+    return require('./build/Release/addon.node');
+} catch (err) {
+    return require('./build/Debug/addon.node');
+}
+```
 
 但是个人觉得这种引入方式很奇怪，在能保证正确性的情况下，如果是开发模式，用Debug目录下的，生产模式用Release下的。
 
@@ -142,14 +148,16 @@ node.js使用一些静态链接库，比如V8、libuv和OpenSSL。所有扩展�
 
 以下的几个例子的binding.gyp都使用：
 
-    {
-        "targets": [
-            {
-                "target_name": "addon",
-                "sources": [ "addon.cc" ]
-            }
-        ]
-    }
+```json
+{
+    "targets": [
+        {
+            "target_name": "addon",
+            "sources": [ "addon.cc" ]
+        }
+    ]
+}
+```
 
 如果有多于一个的C++文件，可以把所有文件放在sources数组中：
 
@@ -165,95 +173,101 @@ C++扩展可以暴露函数和对象出来让node.js访问。当从js中调用C+
 
 以下代码展示了C++扩展代码如何读取从js传递过来的函数入参和如何返回值：
 
-    // addon.cc
-    #include <node.h>
+```C++
+// addon.cc
+#include <node.h>
 
-    namespace demo {
-        using v8::Exception;
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Number;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+namespace demo {
+    using v8::Exception;
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Number;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        // This is the implementation of the "add" method
-        // Input arguments are passed using the
-        // const FunctionCallbackInfo<Value>& args struct
-        void Add(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    // This is the implementation of the "add" method
+    // Input arguments are passed using the
+    // const FunctionCallbackInfo<Value>& args struct
+    void Add(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            // Check the number of arguments passed.
-            if (args.Length() < 2) {
-                // Throw an Error that is passed back to JavaScript
-                isolate->ThrowException(Exception::TypeError(
-                    String::NewFromUtf8(isolate, "Wrong number of arguments")));
-                return;
-            }
-
-            // Check the argument types
-            if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
-                isolate->ThrowException(Exception::TypeError(
-                    String::NewFromUtf8(isolate, "Wrong arguments")));
-                return;
-            }
-
-            // Perform the operation
-            double value = args[0]->NumberValue() + args[1]->NumberValue();
-            Local<Number> num = Number::New(isolate, value);
-
-            // Set the return value (using the passed in
-            // FunctionCallbackInfo<Value>&)
-            args.GetReturnValue().Set(num);
+        // Check the number of arguments passed.
+        if (args.Length() < 2) {
+            // Throw an Error that is passed back to JavaScript
+            isolate->ThrowException(Exception::TypeError(
+                String::NewFromUtf8(isolate, "Wrong number of arguments")));
+            return;
         }
 
-        void Init(Local<Object> exports) {
-            NODE_SET_METHOD(exports, "add", Add);
+        // Check the argument types
+        if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
+            isolate->ThrowException(Exception::TypeError(
+                String::NewFromUtf8(isolate, "Wrong arguments")));
+            return;
         }
 
-        NODE_MODULE(addon, Init)
-    }  // namespace demo
+        // Perform the operation
+        double value = args[0]->NumberValue() + args[1]->NumberValue();
+        Local<Number> num = Number::New(isolate, value);
+
+        // Set the return value (using the passed in
+        // FunctionCallbackInfo<Value>&)
+        args.GetReturnValue().Set(num);
+    }
+
+    void Init(Local<Object> exports) {
+        NODE_SET_METHOD(exports, "add", Add);
+    }
+
+    NODE_MODULE(addon, Init)
+}  // namespace demo
+```
 
 编译成功后，这个扩展可以被node.js使用require()包含并使用：
 
-    // test.js
-    const addon = require('./build/Release/addon');
-    console.log('This should be eight:', addon.add(3, 5));
+```js
+// test.js
+const addon = require('./build/Release/addon');
+console.log('This should be eight:', addon.add(3, 5));
+```
 
 ### 回调函数
 
 一种很常见的做法是从js传递回调函数给C++调用，下面这个示例展示了如何做：
 
-    // addon.cc
-    #include <node.h>
+```C++
+// addon.cc
+#include <node.h>
 
-    namespace demo {
+namespace demo {
 
-        using v8::Function;
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Null;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+    using v8::Function;
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Null;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        void RunCallback(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-            Local<Function> cb = Local<Function>::Cast(args[0]);
-            const unsigned argc = 1;
-            Local<Value> argv[argc] = { String::NewFromUtf8(isolate, "hello world") };
-            cb->Call(Null(isolate), argc, argv);
-        }
+    void RunCallback(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        Local<Function> cb = Local<Function>::Cast(args[0]);
+        const unsigned argc = 1;
+        Local<Value> argv[argc] = { String::NewFromUtf8(isolate, "hello world") };
+        cb->Call(Null(isolate), argc, argv);
+    }
 
-        void Init(Local<Object> exports, Local<Object> module) {
-            NODE_SET_METHOD(module, "exports", RunCallback);
-        }
+    void Init(Local<Object> exports, Local<Object> module) {
+        NODE_SET_METHOD(module, "exports", RunCallback);
+    }
 
-        NODE_MODULE(addon, Init)
+    NODE_MODULE(addon, Init)
 
-    }  // namespace demo
+}  // namespace demo
+```
 
 解释：
 
@@ -278,11 +292,13 @@ C++扩展可以暴露函数和对象出来让node.js访问。当从js中调用C+
 
 这将允许扩展使用单个函数的形式代替之前往exports中添加函数作为属性的方式来完全地重写exports。因此可以直接用扩展的名字作为函数名来调用，这适用于此扩展只对外暴露一个方法的情况：
 
-    // test.js
-    const addon = require('./build/Release/addon');
-    addon((msg) => {
-        console.log(msg); // 'hello world'
-    });
+```js
+// test.js
+const addon = require('./build/Release/addon');
+addon((msg) => {
+    console.log(msg); // 'hello world'
+});
+```
 
 作为演示，在这个示例中只是同步地调用回调函数。
 
@@ -290,34 +306,36 @@ C++扩展可以暴露函数和对象出来让node.js访问。当从js中调用C+
 
 在下面的示例中，扩展可以使用C++创建并返回新对象。下面的例子中，createObject()函数接受一个string类型的参数，然后创建一个一模一样的string，并在一个对象的msg属性中返回这个string：
 
-    // addon.cc
-    #include <node.h>
+```C++
+// addon.cc
+#include <node.h>
 
-    namespace demo {
+namespace demo {
 
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        void CreateObject(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void CreateObject(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            Local<Object> obj = Object::New(isolate);
-            obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString());
+        Local<Object> obj = Object::New(isolate);
+        obj->Set(String::NewFromUtf8(isolate, "msg"), args[0]->ToString());
 
-            args.GetReturnValue().Set(obj);
-        }
+        args.GetReturnValue().Set(obj);
+    }
 
-        void Init(Local<Object> exports, Local<Object> module) {
-            NODE_SET_METHOD(module, "exports", CreateObject);
-        }
+    void Init(Local<Object> exports, Local<Object> module) {
+        NODE_SET_METHOD(module, "exports", CreateObject);
+    }
 
-        NODE_MODULE(addon, Init)
+    NODE_MODULE(addon, Init)
 
-    }  // namespace demo
+}  // namespace demo
+```
 
 解释：
 
@@ -330,55 +348,59 @@ C++扩展可以暴露函数和对象出来让node.js访问。当从js中调用C+
 
 测试上面扩展的js代码：
 
-    // test.js
-    const addon = require('./build/Release/addon');
+```js
+// test.js
+const addon = require('./build/Release/addon');
 
-    var obj1 = addon('hello');
-    var obj2 = addon('world');
-    console.log(obj1.msg + ' ' + obj2.msg); // 'hello world'
+var obj1 = addon('hello');
+var obj2 = addon('world');
+console.log(obj1.msg + ' ' + obj2.msg); // 'hello world'
+```
 
 ### 函数工厂
 
 还有一种常见的行为是创建包装了C++函数的js函数，并返回给js：
 
-    // addon.cc
-    #include <node.h>
+```C++
+// addon.cc
+#include <node.h>
 
-    namespace demo {
+namespace demo {
 
-        using v8::Function;
-        using v8::FunctionCallbackInfo;
-        using v8::FunctionTemplate;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+    using v8::Function;
+    using v8::FunctionCallbackInfo;
+    using v8::FunctionTemplate;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        void MyFunction(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-            args.GetReturnValue().Set(String::NewFromUtf8(isolate, "hello world"));
-        }
+    void MyFunction(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, "hello world"));
+    }
 
-        void CreateFunction(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void CreateFunction(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, MyFunction);
-            Local<Function> fn = tpl->GetFunction();
+        Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, MyFunction);
+        Local<Function> fn = tpl->GetFunction();
 
-            // omit this to make it anonymous
-            fn->SetName(String::NewFromUtf8(isolate, "theFunction"));
+        // omit this to make it anonymous
+        fn->SetName(String::NewFromUtf8(isolate, "theFunction"));
 
-            args.GetReturnValue().Set(fn);
-        }
+        args.GetReturnValue().Set(fn);
+    }
 
-        void Init(Local<Object> exports, Local<Object> module) {
-            NODE_SET_METHOD(module, "exports", CreateFunction);
-        }
+    void Init(Local<Object> exports, Local<Object> module) {
+        NODE_SET_METHOD(module, "exports", CreateFunction);
+    }
 
-        NODE_MODULE(addon, Init)
+    NODE_MODULE(addon, Init)
 
-    }  // namespace demo
+}  // namespace demo
+```
 
 解释：
 
@@ -392,136 +414,141 @@ C++扩展可以暴露函数和对象出来让node.js访问。当从js中调用C+
 
 测试一下：
 
-    // test.js
-    const addon = require('./build/Release/addon');
+```js
+// test.js
+const addon = require('./build/Release/addon');
 
-    var fn = addon();
-    console.log(fn()); // 'hello world'
+var fn = addon();
+console.log(fn()); // 'hello world'
+```
 
 ### 包装C++对象
 
 还可以使用js的new操作符创建由C++包装的对象或类：
 
-    // addon.cc
-    #include <node.h>
-    #include "myobject.h"
+```C++
+// addon.cc
+#include <node.h>
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
+    using v8::Local;
+    using v8::Object;
 
-        using v8::Local;
-        using v8::Object;
+    void InitAll(Local<Object> exports) {
+        MyObject::Init(exports);
+    }
 
-        void InitAll(Local<Object> exports) {
-            MyObject::Init(exports);
-        }
+    NODE_MODULE(addon, InitAll)
 
-        NODE_MODULE(addon, InitAll)
-
-    }  // namespace demo
+}  // namespace demo
+```
 
 在上面的myobject.h中，包装类继承自node::ObjectWrap：
 
-    // myobject.h
-    #ifndef MYOBJECT_H
-    #define MYOBJECT_H
+```C++
+// myobject.h
+#ifndef MYOBJECT_H
+#define MYOBJECT_H
 
-    #include <node.h>
-    #include <node_object_wrap.h>
+#include <node.h>
+#include <node_object_wrap.h>
 
-    namespace demo {
+namespace demo {
+    class MyObject : public node::ObjectWrap {
+        public:
+            static void Init(v8::Local<v8::Object> exports);
 
-        class MyObject : public node::ObjectWrap {
-            public:
-                static void Init(v8::Local<v8::Object> exports);
+        private:
+            explicit MyObject(double value = 0);
+            ~MyObject();
 
-            private:
-                explicit MyObject(double value = 0);
-                ~MyObject();
+        static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void PlusOne(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static v8::Persistent<v8::Function> constructor;
+        double value_;
+    };
 
-            static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-            static void PlusOne(const v8::FunctionCallbackInfo<v8::Value>& args);
-            static v8::Persistent<v8::Function> constructor;
-            double value_;
-        };
+}  // namespace demo
 
-    }  // namespace demo
-
-    #endif
+#endif
+```
 
 在myobject.cc中，实现了那些被暴露出去的方法。下面的代码通过把plusOne()添加到构造函数的prototype来暴露它：
 
-    // myobject.cc
-    #include "myobject.h"
+```C++
+// myobject.cc
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
+    using v8::Context;
+    using v8::Function;
+    using v8::FunctionCallbackInfo;
+    using v8::FunctionTemplate;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Number;
+    using v8::Object;
+    using v8::Persistent;
+    using v8::String;
+    using v8::Value;
 
-        using v8::Context;
-        using v8::Function;
-        using v8::FunctionCallbackInfo;
-        using v8::FunctionTemplate;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Number;
-        using v8::Object;
-        using v8::Persistent;
-        using v8::String;
-        using v8::Value;
+    Persistent<Function> MyObject::constructor;
 
-        Persistent<Function> MyObject::constructor;
+    MyObject::MyObject(double value) : value_(value) {
+    }
 
-        MyObject::MyObject(double value) : value_(value) {
+    MyObject::~MyObject() {
+    }
+
+    void MyObject::Init(Local<Object> exports) {
+        Isolate* isolate = exports->GetIsolate();
+
+        // Prepare constructor template
+        Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+        tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        // Prototype
+        NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
+
+        constructor.Reset(isolate, tpl->GetFunction());
+        exports->Set(String::NewFromUtf8(isolate, "MyObject"),
+                    tpl->GetFunction());
+    }
+
+    void MyObject::New(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+
+        if (args.IsConstructCall()) {
+            // Invoked as constructor: `new MyObject(...)`
+            double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+            MyObject* obj = new MyObject(value);
+            obj->Wrap(args.This());
+            args.GetReturnValue().Set(args.This());
+        } else {
+            // Invoked as plain function `MyObject(...)`, turn into construct call.
+            const int argc = 1;
+            Local<Value> argv[argc] = { args[0] };
+            Local<Context> context = isolate->GetCurrentContext();
+            Local<Function> cons = Local<Function>::New(isolate, constructor);
+            Local<Object> result =
+                cons->NewInstance(context, argc, argv).ToLocalChecked();
+            args.GetReturnValue().Set(result);
         }
+    }
 
-        MyObject::~MyObject() {
-        }
+    void MyObject::PlusOne(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-        void MyObject::Init(Local<Object> exports) {
-            Isolate* isolate = exports->GetIsolate();
+        MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.Holder());
+        obj->value_ += 1;
 
-            // Prepare constructor template
-            Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-            tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
-            tpl->InstanceTemplate()->SetInternalFieldCount(1);
+        args.GetReturnValue().Set(Number::New(isolate, obj->value_));
+    }
 
-            // Prototype
-            NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
-
-            constructor.Reset(isolate, tpl->GetFunction());
-            exports->Set(String::NewFromUtf8(isolate, "MyObject"),
-                       tpl->GetFunction());
-        }
-
-        void MyObject::New(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-
-            if (args.IsConstructCall()) {
-                // Invoked as constructor: `new MyObject(...)`
-                double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
-                MyObject* obj = new MyObject(value);
-                obj->Wrap(args.This());
-                args.GetReturnValue().Set(args.This());
-          } else {
-                // Invoked as plain function `MyObject(...)`, turn into construct call.
-                const int argc = 1;
-                Local<Value> argv[argc] = { args[0] };
-                Local<Context> context = isolate->GetCurrentContext();
-                Local<Function> cons = Local<Function>::New(isolate, constructor);
-                Local<Object> result =
-                    cons->NewInstance(context, argc, argv).ToLocalChecked();
-                args.GetReturnValue().Set(result);
-            }
-        }
-
-        void MyObject::PlusOne(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-
-            MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.Holder());
-            obj->value_ += 1;
-
-            args.GetReturnValue().Set(Number::New(isolate, obj->value_));
-        }
-
-    }  // namespace demo
+}  // namespace demo
+```
 
 解释：
 
@@ -566,179 +593,190 @@ js中的函数如果不是构造调用就是普通的函数调用。
 
 为了构建这个例子，需要把myobject.cc加入binding.gyp：
 
-    {
-        "targets": [
-            {
-            "target_name": "addon",
-            "sources": [
-                "addon.cc",
-                "myobject.cc"
-            ]
-            }
+```json
+{
+    "targets": [
+        {
+        "target_name": "addon",
+        "sources": [
+            "addon.cc",
+            "myobject.cc"
         ]
-    }
+        }
+    ]
+}
+```
 
 测试：
 
-    // test.js
-    const addon = require('./build/Release/addon');
+```js
+// test.js
+const addon = require('./build/Release/addon');
 
-    var obj = new addon.MyObject(10);
-    console.log(obj.plusOne()); // 11
-    console.log(obj.plusOne()); // 12
-    console.log(obj.plusOne()); // 13
+var obj = new addon.MyObject(10);
+console.log(obj.plusOne()); // 11
+console.log(obj.plusOne()); // 12
+console.log(obj.plusOne()); // 13
+```
 
 ### 包装对象工厂
 
 另外，还可以使用工厂模式来避免显式使用new操作符创建对象实例：
 
-    var obj = addon.createObject();
-    // instead of:
-    // var obj = new addon.Object();
+```js
+var obj = addon.createObject();
+// instead of:
+// var obj = new addon.Object();
+```
 
 首先，需要在addon.cc中实现createObject()方法：
 
-    // addon.cc
-    #include <node.h>
-    #include "myobject.h"
+```C++
+// addon.cc
+#include <node.h>
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+    void CreateObject(const FunctionCallbackInfo<Value>& args) {
+        MyObject::NewInstance(args);
+    }
 
-        void CreateObject(const FunctionCallbackInfo<Value>& args) {
-            MyObject::NewInstance(args);
-        }
+    void InitAll(Local<Object> exports, Local<Object> module) {
+        MyObject::Init(exports->GetIsolate());
 
-        void InitAll(Local<Object> exports, Local<Object> module) {
-            MyObject::Init(exports->GetIsolate());
+        NODE_SET_METHOD(module, "exports", CreateObject);
+    }
 
-            NODE_SET_METHOD(module, "exports", CreateObject);
-        }
+    NODE_MODULE(addon, InitAll)
 
-        NODE_MODULE(addon, InitAll)
-
-    }  // namespace demo
+}  // namespace demo
+```
 
 在myobject.h中，加入静态方法NewInstance()来处理实例化对象的操作，我们将用NewInstance()替代js的new操作符：
 
-    // myobject.h
-    #ifndef MYOBJECT_H
-    #define MYOBJECT_H
+```C++
+// myobject.h
+#ifndef MYOBJECT_H
+#define MYOBJECT_H
 
-    #include <node.h>
-    #include <node_object_wrap.h>
+#include <node.h>
+#include <node_object_wrap.h>
 
-    namespace demo {
+namespace demo {
 
-        class MyObject : public node::ObjectWrap {
-            public:
-                static void Init(v8::Isolate* isolate);
-                static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
+    class MyObject : public node::ObjectWrap {
+        public:
+            static void Init(v8::Isolate* isolate);
+            static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-            private:
-                explicit MyObject(double value = 0);
-                ~MyObject();
+        private:
+            explicit MyObject(double value = 0);
+            ~MyObject();
 
-                static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-                static void PlusOne(const v8::FunctionCallbackInfo<v8::Value>& args);
-                static v8::Persistent<v8::Function> constructor;
-                double value_;
-        };
+            static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+            static void PlusOne(const v8::FunctionCallbackInfo<v8::Value>& args);
+            static v8::Persistent<v8::Function> constructor;
+            double value_;
+    };
 
-    }  // namespace demo
+}  // namespace demo
 
-    #endif
+#endif
+```
 
 myobject.cc中的实现和前面差不多：
 
-    // myobject.cc
-    #include <node.h>
-    #include "myobject.h"
+```C++
+// myobject.cc
+#include <node.h>
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
 
-        using v8::Context;
-        using v8::Function;
-        using v8::FunctionCallbackInfo;
-        using v8::FunctionTemplate;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Number;
-        using v8::Object;
-        using v8::Persistent;
-        using v8::String;
-        using v8::Value;
+    using v8::Context;
+    using v8::Function;
+    using v8::FunctionCallbackInfo;
+    using v8::FunctionTemplate;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Number;
+    using v8::Object;
+    using v8::Persistent;
+    using v8::String;
+    using v8::Value;
 
-        Persistent<Function> MyObject::constructor;
+    Persistent<Function> MyObject::constructor;
 
-        MyObject::MyObject(double value) : value_(value) {
-        }
+    MyObject::MyObject(double value) : value_(value) {
+    }
 
-        MyObject::~MyObject() {
-        }
+    MyObject::~MyObject() {
+    }
 
-        void MyObject::Init(Isolate* isolate) {
-            // Prepare constructor template
-            Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-            tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
-            tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    void MyObject::Init(Isolate* isolate) {
+        // Prepare constructor template
+        Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+        tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-            // Prototype
-            NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
+        // Prototype
+        NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
 
-            constructor.Reset(isolate, tpl->GetFunction());
-        }
+        constructor.Reset(isolate, tpl->GetFunction());
+    }
 
-        void MyObject::New(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void MyObject::New(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            if (args.IsConstructCall()) {
-                // Invoked as constructor: `new MyObject(...)`
-                double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
-                MyObject* obj = new MyObject(value);
-                obj->Wrap(args.This());
+        if (args.IsConstructCall()) {
+            // Invoked as constructor: `new MyObject(...)`
+            double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+            MyObject* obj = new MyObject(value);
+            obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
-            } else {
-                // Invoked as plain function `MyObject(...)`, turn into construct call.
-                const int argc = 1;
-                Local<Value> argv[argc] = { args[0] };
-                Local<Function> cons = Local<Function>::New(isolate, constructor);
-                Local<Context> context = isolate->GetCurrentContext();
-                Local<Object> instance =
-                    cons->NewInstance(context, argc, argv).ToLocalChecked();
-                args.GetReturnValue().Set(instance);
-            }
-        }
-
-        void MyObject::NewInstance(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-
-            const unsigned argc = 1;
+        } else {
+            // Invoked as plain function `MyObject(...)`, turn into construct call.
+            const int argc = 1;
             Local<Value> argv[argc] = { args[0] };
             Local<Function> cons = Local<Function>::New(isolate, constructor);
             Local<Context> context = isolate->GetCurrentContext();
             Local<Object> instance =
                 cons->NewInstance(context, argc, argv).ToLocalChecked();
-
             args.GetReturnValue().Set(instance);
         }
+    }
 
-        void MyObject::PlusOne(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void MyObject::NewInstance(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.Holder());
-            obj->value_ += 1;
+        const unsigned argc = 1;
+        Local<Value> argv[argc] = { args[0] };
+        Local<Function> cons = Local<Function>::New(isolate, constructor);
+        Local<Context> context = isolate->GetCurrentContext();
+        Local<Object> instance =
+            cons->NewInstance(context, argc, argv).ToLocalChecked();
 
-            args.GetReturnValue().Set(Number::New(isolate, obj->value_));
-        }
+        args.GetReturnValue().Set(instance);
+    }
 
-    }  // namespace demo
+    void MyObject::PlusOne(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+
+        MyObject* obj = ObjectWrap::Unwrap<MyObject>(args.Holder());
+        obj->value_ += 1;
+
+        args.GetReturnValue().Set(Number::New(isolate, obj->value_));
+    }
+
+}  // namespace demo
+```
 
 解释：
 
@@ -746,180 +784,190 @@ myobject.cc中的实现和前面差不多：
 
 再强调一次，为了构建这个例子，需要把myobject.cc加入binding.gyp：
 
-    {
-        "targets": [
-            {
-                "target_name": "addon",
-                 "sources": [
-                    "addon.cc",
-                    "myobject.cc"
-                ]
-            }
-        ]
-    }
+```json
+{
+    "targets": [
+        {
+            "target_name": "addon",
+            "sources": [
+                "addon.cc",
+                "myobject.cc"
+            ]
+        }
+    ]
+}
+```
 
 测试：
 
-    // test.js
-    const createObject = require('./build/Release/addon');
+```js
+// test.js
+const createObject = require('./build/Release/addon');
 
-    var obj = createObject(10);
-    console.log(obj.plusOne()); // 11
-    console.log(obj.plusOne()); // 12
-    console.log(obj.plusOne()); // 13
+var obj = createObject(10);
+console.log(obj.plusOne()); // 11
+console.log(obj.plusOne()); // 12
+console.log(obj.plusOne()); // 13
 
-    var obj2 = createObject(20);
-    console.log(obj2.plusOne()); // 21
-    console.log(obj2.plusOne()); // 22
-    console.log(obj2.plusOne()); // 23
+var obj2 = createObject(20);
+console.log(obj2.plusOne()); // 21
+console.log(obj2.plusOne()); // 22
+console.log(obj2.plusOne()); // 23
+```
 
 ### 传递包装对象
 
 为了进一步包装和返回C++对象，可以利用node.js的helper函数node::ObjectWrap::Unwrap来展开包装对象。下面的例子展示了一个接受两个MyObject对象作为参数的函数add()：
 
-    // addon.cc
-    #include <node.h>
-    #include <node_object_wrap.h>
-    #include "myobject.h"
+```C++
+// addon.cc
+#include <node.h>
+#include <node_object_wrap.h>
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
 
-        using v8::FunctionCallbackInfo;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Number;
-        using v8::Object;
-        using v8::String;
-        using v8::Value;
+    using v8::FunctionCallbackInfo;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Number;
+    using v8::Object;
+    using v8::String;
+    using v8::Value;
 
-        void CreateObject(const FunctionCallbackInfo<Value>& args) {
-            MyObject::NewInstance(args);
-        }
+    void CreateObject(const FunctionCallbackInfo<Value>& args) {
+        MyObject::NewInstance(args);
+    }
 
-        void Add(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void Add(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            MyObject* obj1 = node::ObjectWrap::Unwrap<MyObject>(
-                args[0]->ToObject());
-            MyObject* obj2 = node::ObjectWrap::Unwrap<MyObject>(
-                args[1]->ToObject());
+        MyObject* obj1 = node::ObjectWrap::Unwrap<MyObject>(
+            args[0]->ToObject());
+        MyObject* obj2 = node::ObjectWrap::Unwrap<MyObject>(
+            args[1]->ToObject());
 
-            double sum = obj1->value() + obj2->value();
-            args.GetReturnValue().Set(Number::New(isolate, sum));
-        }
+        double sum = obj1->value() + obj2->value();
+        args.GetReturnValue().Set(Number::New(isolate, sum));
+    }
 
-        void InitAll(Local<Object> exports) {
-            MyObject::Init(exports->GetIsolate());
+    void InitAll(Local<Object> exports) {
+        MyObject::Init(exports->GetIsolate());
 
-            NODE_SET_METHOD(exports, "createObject", CreateObject);
-            NODE_SET_METHOD(exports, "add", Add);
-        }
+        NODE_SET_METHOD(exports, "createObject", CreateObject);
+        NODE_SET_METHOD(exports, "add", Add);
+    }
 
-        NODE_MODULE(addon, InitAll)
+    NODE_MODULE(addon, InitAll)
 
-    }  // namespace demo
+}  // namespace demo
+```
 
 在myobject.h中，加入一个新的public方法value()来获取private变量：
 
-    // myobject.h
-    #ifndef MYOBJECT_H
-    #define MYOBJECT_H
+```C++
+// myobject.h
+#ifndef MYOBJECT_H
+#define MYOBJECT_H
 
-    #include <node.h>
-    #include <node_object_wrap.h>
+#include <node.h>
+#include <node_object_wrap.h>
 
-    namespace demo {
+namespace demo {
 
-        class MyObject : public node::ObjectWrap {
-            public:
-                static void Init(v8::Isolate* isolate);
-                static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
-                inline double value() const { return value_; }
+    class MyObject : public node::ObjectWrap {
+        public:
+            static void Init(v8::Isolate* isolate);
+            static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
+            inline double value() const { return value_; }
 
-            private:
-                explicit MyObject(double value = 0);
-                ~MyObject();
+        private:
+            explicit MyObject(double value = 0);
+            ~MyObject();
 
-                static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-                static v8::Persistent<v8::Function> constructor;
-                double value_;
-        };
+            static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+            static v8::Persistent<v8::Function> constructor;
+            double value_;
+    };
 
-    }  // namespace demo
+}  // namespace demo
 
-    #endif
+#endif
+```
 
 myobject.cc的实现也和之前类似：
 
-    // myobject.cc
-    #include <node.h>
-    #include "myobject.h"
+```C++
+// myobject.cc
+#include <node.h>
+#include "myobject.h"
 
-    namespace demo {
+namespace demo {
 
-        using v8::Context;
-        using v8::Function;
-        using v8::FunctionCallbackInfo;
-        using v8::FunctionTemplate;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
-        using v8::Persistent;
-        using v8::String;
-        using v8::Value;
+    using v8::Context;
+    using v8::Function;
+    using v8::FunctionCallbackInfo;
+    using v8::FunctionTemplate;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
+    using v8::Persistent;
+    using v8::String;
+    using v8::Value;
 
-        Persistent<Function> MyObject::constructor;
+    Persistent<Function> MyObject::constructor;
 
-        MyObject::MyObject(double value) : value_(value) {
-        }
+    MyObject::MyObject(double value) : value_(value) {
+    }
 
-        MyObject::~MyObject() {
-        }
+    MyObject::~MyObject() {
+    }
 
-        void MyObject::Init(Isolate* isolate) {
-            // Prepare constructor template
-            Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-            tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
-            tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    void MyObject::Init(Isolate* isolate) {
+        // Prepare constructor template
+        Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+        tpl->SetClassName(String::NewFromUtf8(isolate, "MyObject"));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-            constructor.Reset(isolate, tpl->GetFunction());
-        }
+        constructor.Reset(isolate, tpl->GetFunction());
+    }
 
-        void MyObject::New(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
+    void MyObject::New(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
 
-            if (args.IsConstructCall()) {
-                // Invoked as constructor: `new MyObject(...)`
-                double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
-                MyObject* obj = new MyObject(value);
-                obj->Wrap(args.This());
-                args.GetReturnValue().Set(args.This());
-             } else {
-                // Invoked as plain function `MyObject(...)`, turn into construct call.
-                const int argc = 1;
-                Local<Value> argv[argc] = { args[0] };
-                Local<Context> context = isolate->GetCurrentContext();
-                Local<Function> cons = Local<Function>::New(isolate, constructor);
-                Local<Object> instance =
-                    cons->NewInstance(context, argc, argv).ToLocalChecked();
-                args.GetReturnValue().Set(instance);
-            }
-        }
-
-        void MyObject::NewInstance(const FunctionCallbackInfo<Value>& args) {
-            Isolate* isolate = args.GetIsolate();
-
-            const unsigned argc = 1;
+        if (args.IsConstructCall()) {
+            // Invoked as constructor: `new MyObject(...)`
+            double value = args[0]->IsUndefined() ? 0 : args[0]->NumberValue();
+            MyObject* obj = new MyObject(value);
+            obj->Wrap(args.This());
+            args.GetReturnValue().Set(args.This());
+        } else {
+            // Invoked as plain function `MyObject(...)`, turn into construct call.
+            const int argc = 1;
             Local<Value> argv[argc] = { args[0] };
-            Local<Function> cons = Local<Function>::New(isolate, constructor);
             Local<Context> context = isolate->GetCurrentContext();
+            Local<Function> cons = Local<Function>::New(isolate, constructor);
             Local<Object> instance =
                 cons->NewInstance(context, argc, argv).ToLocalChecked();
-
             args.GetReturnValue().Set(instance);
         }
+    }
 
-    }  // namespace demo
+    void MyObject::NewInstance(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+
+        const unsigned argc = 1;
+        Local<Value> argv[argc] = { args[0] };
+        Local<Function> cons = Local<Function>::New(isolate, constructor);
+        Local<Context> context = isolate->GetCurrentContext();
+        Local<Object> instance =
+            cons->NewInstance(context, argc, argv).ToLocalChecked();
+
+        args.GetReturnValue().Set(instance);
+    }
+
+}  // namespace demo
+```
 
 解释：
 
@@ -929,14 +977,16 @@ myobject.cc的实现也和之前类似：
 
 测试：
 
-    // test.js
-    const addon = require('./build/Release/addon');
+```js
+// test.js
+const addon = require('./build/Release/addon');
 
-    var obj1 = addon.createObject(10);
-    var obj2 = addon.createObject(20);
-    var result = addon.add(obj1, obj2);
+var obj1 = addon.createObject(10);
+var obj2 = addon.createObject(20);
+var result = addon.add(obj1, obj2);
 
-    console.log(result); // 30
+console.log(result); // 30
+```
 
 ### AtExit钩子
 
@@ -957,53 +1007,55 @@ AtExit钩子接受两个参数：一个回调函数的函数指针和一个传�
 
 以下的addon.cc实现了AtExit钩子：
 
-    // addon.cc
-    #undef NDEBUG
-    #include <assert.h>
-    #include <stdlib.h>
-    #include <node.h>
+```C++
+// addon.cc
+#undef NDEBUG
+#include <assert.h>
+#include <stdlib.h>
+#include <node.h>
 
-    namespace demo {
+namespace demo {
 
-        using node::AtExit;
-        using v8::HandleScope;
-        using v8::Isolate;
-        using v8::Local;
-        using v8::Object;
+    using node::AtExit;
+    using v8::HandleScope;
+    using v8::Isolate;
+    using v8::Local;
+    using v8::Object;
 
-        static char cookie[] = "yum yum";
-        static int at_exit_cb1_called = 0;
-        static int at_exit_cb2_called = 0;
+    static char cookie[] = "yum yum";
+    static int at_exit_cb1_called = 0;
+    static int at_exit_cb2_called = 0;
 
-        static void at_exit_cb1(void* arg) {
-            Isolate* isolate = static_cast<Isolate*>(arg);
-            HandleScope scope(isolate);
-            Local<Object> obj = Object::New(isolate);
-            assert(!obj.IsEmpty()); // assert VM is still alive
-            assert(obj->IsObject());
-            at_exit_cb1_called++;
-        }
+    static void at_exit_cb1(void* arg) {
+        Isolate* isolate = static_cast<Isolate*>(arg);
+        HandleScope scope(isolate);
+        Local<Object> obj = Object::New(isolate);
+        assert(!obj.IsEmpty()); // assert VM is still alive
+        assert(obj->IsObject());
+        at_exit_cb1_called++;
+    }
 
-        static void at_exit_cb2(void* arg) {
-            assert(arg == static_cast<void*>(cookie));
-            at_exit_cb2_called++;
-        }
+    static void at_exit_cb2(void* arg) {
+        assert(arg == static_cast<void*>(cookie));
+        at_exit_cb2_called++;
+    }
 
-        static void sanity_check(void*) {
-            assert(at_exit_cb1_called == 1);
-            assert(at_exit_cb2_called == 2);
-        }
+    static void sanity_check(void*) {
+        assert(at_exit_cb1_called == 1);
+        assert(at_exit_cb2_called == 2);
+    }
 
-        void init(Local<Object> exports) {
-            AtExit(sanity_check);
-            AtExit(at_exit_cb2, cookie);
-            AtExit(at_exit_cb2, cookie);
-            AtExit(at_exit_cb1, exports->GetIsolate());
-        }
+    void init(Local<Object> exports) {
+        AtExit(sanity_check);
+        AtExit(at_exit_cb2, cookie);
+        AtExit(at_exit_cb2, cookie);
+        AtExit(at_exit_cb1, exports->GetIsolate());
+    }
 
-        NODE_MODULE(addon, init);
+    NODE_MODULE(addon, init);
 
-    }  // namespace demo
+}  // namespace demo
+```
 
 解释：
 
@@ -1030,5 +1082,7 @@ sanity_check会检查at_exit_cb1和at_exit_cb2的调用次数：
 
 测试：
 
-    // test.js
-    const addon = require('./build/Release/addon');
+```js
+// test.js
+const addon = require('./build/Release/addon');
+```
