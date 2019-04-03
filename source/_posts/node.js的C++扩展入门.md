@@ -5,7 +5,7 @@ tags: [node]
 categories: 编程语言
 ---
 
-声明：本文主要翻译自node.js官方API：https://nodejs.org/api/addons.html。部分解释为作者自己添加。
+声明：本文主要翻译自node.js官方API：[C++ Addons](https://nodejs.org/api/addons.html)。部分解释为作者自己添加。
 
 <!--more-->
 
