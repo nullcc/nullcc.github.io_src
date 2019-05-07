@@ -1112,7 +1112,7 @@ const fs = require('fs');
 
 const readFile = promiseWrapper(fs.readFile);
     
-const asyncReadFile = async function (){
+const asyncReadFile = async function () {
 	const f1 = await readFile('a.txt', 'utf8');
 	const f2 = await readFile('b.txt', 'utf8');
 	console.log(f1); // file a content
@@ -1120,6 +1120,34 @@ const asyncReadFile = async function (){
 };
     
 asyncReadFile();
+```
+
+如果不加`await`调用`async`函数，该异步函数将像旧式异步函数那样直接返回，也就是说，后面的代码不会等待该异步函数执行完毕，看一个例子：
+
+```js
+// async-without-await.js
+const delay = time => {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, time);
+  });
+};
+    
+const demo = async function () {
+  const start = new Date().getTime();
+  delay(5000);
+  console.log(`${new Date().getTime() - start}ms --- a`);
+  await delay(5000);
+  console.log(`${new Date().getTime() - start}ms --- b`);
+};
+    
+demo();
+```
+
+打印结果：
+
+```
+0ms --- a
+5006ms --- b
 ```
 
 ### 使用事件进行异步编程
