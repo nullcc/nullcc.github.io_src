@@ -45,12 +45,14 @@ node.js是单进程单线程运行的，如果遇到一些计算密集型的操�
 下面用主进程和子进程的两段代码进行说明：
 
 主进程：
-```js
+```ts
 // master process
 import * as shm from 'shm-typed-array';
 import { fork, ChildProcess, ForkOptions } from 'child_process';
 
-const fetchKnownFailureRules = () => {
+const KNOWN_FAILURE_RULES_API = '...';
+
+const fetchKnownFailureRules = (endpoint: string): any[] => {
   // omit...
 }
 
@@ -82,7 +84,7 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
 };
 
 (async () => {
-  const knownFailureRules = await MiscUtils.fetchKnownFailureRules(GCI_KNOWN_FAILURE_RULES_API);
+  const knownFailureRules = await fetchKnownFailureRules(KNOWN_FAILURE_RULES_API);
   // convert rules array to Uint16Array
   const arr = Uint16Array.from(Buffer.from(JSON.stringify(knownFailureRules)));
   // Create shared memory
@@ -98,7 +100,7 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
   try {
     const issueName = await promiseFork(
       data.key,
-      'match-known-failure.js',
+      'match-known-failure.js', // match-known-failure.js is the script to match known failure
       ['test-name', 'error-message'] // as a demo, test name and error message are fake
       { silent: true }
     );
@@ -115,7 +117,7 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
 // match-known-failure.js
 const shm = require('shm-typed-array');
 
-const matchKnownFailure = () => {
+const matchKnownFailure = (testName, errorMessage, rules) => {
   // omit...
 }
 
