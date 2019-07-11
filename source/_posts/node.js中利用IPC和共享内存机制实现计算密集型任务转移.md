@@ -11,24 +11,30 @@ node.js是单进程单线程运行的，如果遇到一些计算密集型的操�
 
 ## 需求
 
-最近在帮Web自动化测试开发小组编写一个日志插件，这里先简要介绍一下需求的上下文和这个插件的职责。
+最近在帮Web自动化测试开发小组编写一个基于[Allure](http://allure.qatools.ru/)的日志插件，这里先简要介绍一下需求的上下文和这个插件的职责。
 
-这个日志插件是基于一个现有的自研Web测试框架设计和开发的，每次跑一遍测试都称为一次Run，每个Run下有若干个test cases，每个test case下又有若干steps，且step是可以有sub steps的（就是嵌套step）。因此整个运行时的数据结构是一个树形结构，Run为根节点，test为非叶子节点，step可以为非叶子节点（有sub steps）或叶子节点（没有sub steps）。在Run级别，框架提供start run hook和end run hook两个钩子，在test case级别，框架也提供start test hook和end test hook两个钩子。针对steps则是需要用户提供一个针对log的监听函数以异步调用的方式提供给用户。另外测试的执行端由selenium grid控制，具体测试跑在各个slave上，并发数一般可以到60左右。
+Allure本身是一个本地的Log Reporting工具，用户可以在将test case的日志使用Allure提供的API写入本地文件，之后可以直接在本地启动Allure Web Server查看测试的运行情况，这种日志收集方式针对本地调试非常方便。
+
+这个日志插件是基于一个现有的自研Web测试框架设计和开发的，每次跑一遍测试都称为一次Run，每个Run下有若干个test cases，每个test case下又有若干steps，且step是可以有sub steps的（就是嵌套step）。因此整个运行时的数据结构是一个树形结构，该结构如下图所示：
+
+![test run structure](/assets/images/post_imgs/test_run_structure.png)
+
+在Run级别，框架提供on start run和on end run两个回调函数，在test case级别，框架也提供on start test和on end test两个回调函数，在这些回调函数内部用户可以注册自己的操作。针对steps则是需要用户提供一个针对on log handler的回调函数，每次有log输出时，框架都会调用这个函数。另外测试的执行端由selenium grid控制，具体测试运行在各个slave机器上，test case运行的并发数根据现有的资源数量可以达到几十至上百，考虑到资源有限，CI Daily Run一般设置并发数在60左右。
 
 该日志插件的需求（只列出和本文关系密切的需求）：
 
-1. 需要在每次Run的时候将test suites, test cases和steps整理出来。
-2. 对于那些抛出异常的cases，需要判断其抛出的异常信息是否是known failure，如果是，需要在test的元数据中标明known failure issue name，并将test状态设置为Broken，否则设置为Failed。known failure是一个很长的正则表达式列表（如果转换成字符串大约有300KB+），程序需要遍历它来匹配异常信息判断是否是known failure。
+1. 需要在每次Run的时候将test cases和steps整理出来。
+2. 对于那些抛出异常的cases，需要判断其抛出的异常信息是否是known failure，如果是，需要在test的元数据中标明known failure issue name，并将test状态设置为Broken，否则设置为Failed。known failure是一个很长的正则表达式列表（本例中的场景如果转换成字符串大约有300+KB），这个列表将在运行test cases之前通过一个HTTP API从远端获得，程序需要遍历它来匹配异常信息判断是否是known failure。本例中由于使用了Allure这种本地日志收集工具，不可避免的需要在本地对失败case进行known failure的匹配。
 
 整理一下上面列出的信息：
 
 1. 所有log都是以异步事件的形式发送给用户提供的"onLogHandler"的。
-2. 测试运行的并发数较大。
-2. 检测known failure需要遍历一个很长的正则表达式列表，这属于计算密集型操作。
+2. 测试运行的并发数较大（几十至上百）。
+2. 在本地检测失败case的known failure需要遍历一个很长的正则表达式列表，这属于计算密集型操作。
 
 ## 最初实践
 
-最开始的解决方案相当简单粗暴，写一个方法，接受两个参数，一个是异常信息字符串，一个是known failure的正则数组。当某个test case抛出异常时，获取到它的异常信息字符串，直接调用这个方法去匹配。开发环境下因为跑的case不多，这么做完全没问题。到了测试环境压测时，发现仅仅30个并发下，很快就会OOM。开始以为是对node进程分配的内存太小了，于是调高了分配的内存，但这也仅仅只能延缓OOM出现的时间而已。
+最开始的解决方案相当简单粗暴，写一个方法，接受两个参数，一个是异常信息字符串，一个是known failure的正则数组。当某个test case抛出异常时，获取到它的异常信息字符串，直接调用这个方法去匹配。开发环境下因为跑的case不多，这么做完全没问题。到了测试环境压测时，发现仅仅30个并发下，很快就会Out Of Memory (下文简称OOM)。开始以为是对node进程分配的内存太小了，于是调高了分配的内存，但这也仅仅只能延缓OOM出现的时间而已。
 
 ## 问题分析
 
@@ -165,3 +171,7 @@ process.on('exit',  async () => {
 1. 编写node的C++扩展来承担这部分计算工作。
 2. 子进程部分可以改用child_process的exec或者spawn调用一些性能更好的语言写的外部程序，比如C++, Rust或者Go。
 3. 将子进程替换为RPC调用外部服务，但是这种方式比较适合那些传参消耗小的计算任务。
+
+## 后记
+
+本文旨在分享在node.js中遇到计算密集型操作时如何保证主进程不因CPU被长时间占用而阻塞异步事件队列的一种可能方案，其中的例子在其他场景下可能不具有代表性，比如有的用户不需要在本地分析test case的known failure，而是把数据交给某个测试服务来做。
