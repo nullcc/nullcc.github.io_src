@@ -52,6 +52,10 @@ Allure本身是一个本地的Log Reporting工具，用户可以在将test case�
 
 于是想到可以采用共享内存的方式，在主进程中开辟一块专用内存区域共享给子进程，这样每个子进程在获取known failure rules的时候实际上只需要读一块已经就绪的内存。主进程利用IPC的方式将这块内存的key传递给子进程，子进程接收到主进程发送过来的内存key时，将这块内存的值读出并解析，接着直接进行匹配就好了。
 
+共享内存方案的示意图如下：
+
+![ipc shared memory](/assets/images/post_imgs/ipc_shared_memory.png)
+
 下面用主进程和子进程的两段代码进行说明：
 
 主进程：
