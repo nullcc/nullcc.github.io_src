@@ -56,14 +56,13 @@ Allure本身是一个本地的Log Reporting工具，用户可以在将test case�
 
 主进程：
 ```ts
-// master process
 import * as shm from 'shm-typed-array';
 import { fork, ChildProcess, ForkOptions } from 'child_process';
 
 const KNOWN_FAILURE_RULES_API = '...';
 
 const fetchKnownFailureRules = (endpoint: string): any[] => {
-  // omit...
+  // 从HTTP API获取known failure rule lists，代码省略
 }
 
 const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, options?: ForkOptions): Promise<string | null> => {
@@ -95,14 +94,14 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
 
 (async () => {
   const knownFailureRules = await fetchKnownFailureRules(KNOWN_FAILURE_RULES_API);
-  // convert rules array to Uint16Array
+  // 将known failure rule lists转换成Uint16Array
   const arr = Uint16Array.from(Buffer.from(JSON.stringify(knownFailureRules)));
-  // Create shared memory
+  // 创建shared memory
   const data = shm.create(arr.length, 'Buffer');
   if (!data) {
     return;
   }
-  // copy rules Uint16Array into shared memory
+  // 拷贝known failure rule lists的Uint16Array至shared memory
   for (let i = 0; i < data.length; i++) {
     data[i] = arr[i];
   }
@@ -110,8 +109,8 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
   try {
     const issueName = await promiseFork(
       data.key,
-      'match-known-failure.js', // match-known-failure.js is the script to match known failure
-      ['test-name', 'error-message'] // as a demo, test name and error message are fake
+      'match-known-failure.js', // match-known-failure.js是用来匹配known failure的脚本文件
+      ['test-name', 'error-message'] // 这里作为一个演示，test name和error message都是模拟数据
       { silent: true }
     );
     console.log(issueName);
@@ -119,7 +118,6 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
     console.log(err);
   }
 })();
-
 ```
 
 子进程：
@@ -128,14 +126,14 @@ const promiseFork = (memoryKey, path: string, args: ReadonlyArray<string>, optio
 const shm = require('shm-typed-array');
 
 const matchKnownFailure = (testName, errorMessage, rules) => {
-  // omit...
+  // 使用正则表达式匹配known failure rule lists，代码省略
 }
 
 const testName = process.argv[2];
 const errorMessage = process.argv[3];
 
 process.on('message', async key => {
-  // Get access to shared memory
+  // 获取shared memory的数据
   const data = shm.get(key, 'Buffer');
   if (data) {
     const rules = JSON.parse(data.toString());
@@ -168,14 +166,22 @@ process.on('exit',  async () => {
 
 为了保持简单这里只列出了当'exit'事件发生的处理，其实在异常发生或者程序收到一些系统信号时也应该做这个清除处理。另外这个方案目前只在Linux和Mac OS X下测试通过，时间关系并未在Windows下做适配。
 
+## 共享内存方案的一些潜在问题
+
+共享内存的优点是进行进程间通信非常方便，多个进程可以共享同一块内存，省去了数据拷贝的开销，效率很高。但是在使用共享内存的时候还需要注意，共享内存本身并没有提供同步机制，一切同步操作都需要开发者自己完成。在本文的例子中，由于known failure rules对于所有子进程都是只读的，不存在修改共享内存区域数据的问题，因此也不需要任何同步机制。但在一些需要修改共享内存区域的情况下，还需要开发者手动控制同步。
+
 ## 其他解决方案
 
 针对node的计算密集型任务的处理方法，还有很多其他解决方案，以下列举几个：
 
 1. 编写node的C++扩展来承担这部分计算工作。
-2. 子进程部分可以改用child_process的exec或者spawn调用一些性能更好的语言写的外部程序，比如C++, Rust或者Go。
+2. 子进程部分可以改用child_process的exec或者spawn调用一些性能更好的语言写的外部程序，比如C/C++和Rust。
 3. 将子进程替换为RPC调用外部服务，但是这种方式比较适合那些传参消耗小的计算任务。
 
-## 后记
+## 其他
 
-本文旨在分享在node.js中遇到计算密集型操作时如何保证主进程不因CPU被长时间占用而阻塞异步事件队列的一种可能方案，其中的例子在其他场景下可能不具有代表性，比如有的用户不需要在本地分析test case的known failure，而是把数据交给某个测试服务来做。
+本文旨在分享在node.js中遇到计算密集型操作时如何保证主进程不因CPU被长时间占用而阻塞异步事件队列的一种可能方案。
+
+之前有人问我，我不需要在本地实时分析test case的known failure，我有一个外部的测试服务提供了专门的API可以异步地做这件事，那这种方案不就没用了吗？这个问题很好，实际上每个解决方案都有其自身的限制性和适用场景，将分析test case的known failure交给外部服务其实也是一种任务转义（当然前提是你已经有了这个外部服务），实际应用中适用哪种方案需要根据具体情况定夺。
+
+最后，谢谢作为读者的你抽出几分钟阅读我写的东西。
