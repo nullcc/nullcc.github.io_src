@@ -147,4 +147,75 @@ TypeScript的编译过程简单归纳如下：
 1. 实现一个最简单的transformer，之后的工作将在此基础上展开。
 2. 研究如何将transformer集成到TypeScript项目中。
 
+首先我们需要一种能在项目中使用transformer的方式，这里我选择[ttypescript](https://github.com/cevek/ttypescript)，因为它使用起来非常简单，另外还有一种方式是使用[ts-loader](https://github.com/TypeStrong/ts-loader)结合webpack，篇幅关系这里就只介绍使用`ttypescript`的方式。
+
+以`ttypescript`提供的例子为基础，我们可以先写一个基础的transformer（部分代码来自于[ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)）：
+
+```typescript
+// src/transformer.ts
+import * as ts from 'typescript';
+
+export default (program: ts.Program, pluginOptions: {}): ts.TransformerFactory<ts.SourceFile> => {
+  return (ctx: ts.TransformationContext) => {
+    return (sourceFile: ts.SourceFile): ts.SourceFile => {
+      const visitor = (node: ts.Node): ts.Node => {
+        return ts.visitEachChild(visitNode(node, program), visitor, ctx);
+      };
+      return ts.visitEachChild(sourceFile, visitor, ctx);
+    };
+  };
+}
+
+const visitNode = (node: ts.Node, program: ts.Program): ts.Node => {
+  const typeChecker = program.getTypeChecker();
+  if (!isKeysCallExpression(node, typeChecker)) {
+    return node;
+  }
+  return ts.createStringLiteral('will be replaced by interface keys later');
+};
+
+const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node is ts.CallExpression => {
+  if (!ts.isCallExpression(node)) {
+    return false;
+  }
+  const signature = typeChecker.getResolvedSignature(node);
+  if (typeof signature === 'undefined') {
+    return false;
+  }
+  const { declaration } = signature;
+  return !!declaration
+    && !ts.isJSDocSignature(declaration)
+    && !!declaration.name
+    && declaration.name.getText() === 'keys';
+};
+```
+
+几个地方解释一下：
+
+1. 在导出方法中，`ts.visitEachChild`可以使用开发者提供的visitor来访问AST Node的每个子节点，并且在visitor中允许返回一个相同类型的新节点来替换当前被访问的节点。
+2. `visitNode`接受一个`ts.Node`和`ts.Program`类型的参数会在访问指定节点的每个子节点时被调用，这个方法需要放回一个`ts.Node`类型的对象，如果不想对当前节点做任何改变的话，直接返回实参中的`node`即可，如果想要做一些转换，那就需要自己编码实现了，这也是这个transformer实际发挥作用的地方。目前这里的做法是遇到`keys<T>()`调用就将节点替换为一个字符串'will be replaced by interface keys later'。
+3. 这里会沿用`ts-transformer-keys`的调用方式`keys<T>()`，我们需要判断调用点，`isKeysCallExpression`就是用来判断源码中调用`keys<T>()`的地方。
+
+写个测试来验证一下：
+
+```typescript
+// test/transformer.test.ts
+import { keys } from '../index';
+
+describe('Test transformer.', () => {
+  test('Should output \"will be replaced by interface keys later\".', () => {
+    interface Foo {}
+    expect(keys<Foo>()).toEqual('will be replaced by interface keys later'); // true
+  });
+});
+```
+
+测试通过说明我们的transformer生效了。
+
+接下来要进入本文最重要的部分（请原谅我前面铺垫了这么多=。=）：编写获取interface keys的代码了。在第一部分已经列出了一个包含interface的SourceFile的AST结构，不过里面的interface的结构是平坦的，没有嵌套的层级关系。而我们的目的是能够支持具有层级关系和嵌套的interface，一个有层级关系的interface的AST结构如下：
+
+![ts-ast-4](/assets/images/post_imgs/ts-ast-4.png)
+
+其实有层级关系的interface的AST只不过是在内部增加了一些节点引用而已。
+
 **to be continued**
