@@ -174,6 +174,7 @@ const visitNode = (node: ts.Node, program: ts.Program): ts.Node => {
   return ts.createStringLiteral('will be replaced by interface keys later');
 };
 
+const indexTs = path.join(__dirname, './index.ts');
 const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node is ts.CallExpression => {
   if (!ts.isCallExpression(node)) {
     return false;
@@ -185,6 +186,7 @@ const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node 
   const { declaration } = signature;
   return !!declaration
     && !ts.isJSDocSignature(declaration)
+    && (path.join(declaration.getSourceFile().fileName) === indexTs)
     && !!declaration.name
     && declaration.name.getText() === 'keys';
 };
@@ -331,7 +333,7 @@ const _getPropertiesOfSymbol = (symbol: ts.Symbol, propertyPathElements: Interfa
   return properties;
 };
 
-const indexTs = path.join(__dirname, '../index.ts');
+const indexTs = path.join(__dirname, './index.ts');
 const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node is ts.CallExpression => {
   if (!ts.isCallExpression(node)) {
     return false;
@@ -349,7 +351,7 @@ const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node 
 };
 ```
 
-完整的repo可以看这里[ts-interface-keys-transformer](https://github.com/nullcc/ts-interface-keys-transformer)
+完整的repo可以移步[ts-interface-keys-transformer](https://github.com/nullcc/ts-interface-keys-transformer)。
 
 使用该transformer非常简单，首先安装`ttypescript`：
 
@@ -361,8 +363,15 @@ npm i ttypescript
 
 ```
 "plugins": [
-  { "transform": "ts-transformer-keys/transformer" }
+  { "transform": "ts-interface-keys-transformer/transformer" }
 ]
 ```
 
-在build TypeScript项目时，一般用的是`tsc`命令，现在由于使用了ttypescript，需要改用`ttsc`。
+在build TypeScript项目时，一般用的是`tsc`命令，现在由于使用了ttypescript，需要改用`ttsc`，这里有一个[ts-interface-keys-transformer-demo](https://github.com/nullcc/ts-interface-keys-transformer-demo)展示了用法。
+
+## 参考资料
+
+1. [TypScript Architectural Overview](https://github.com/microsoft/TypeScript/wiki/Architectural-Overview)
+2. [TypScript Compiler-Internals](https://github.com/microsoft/TypeScript/wiki/Compiler-Internals#transformer)
+3. [ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)
+4. [ts-ast-viewer](https://ts-ast-viewer.com/)
