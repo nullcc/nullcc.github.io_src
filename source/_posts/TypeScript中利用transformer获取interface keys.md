@@ -78,13 +78,13 @@ interface Foo {
 
 使用ts-ast-viewer可以得到上面代码的AST结构：
 
-![ts-ast-1](/assets/images/post_imgs/ts-ast-1.png)
+![interface的AST结构](/assets/images/post_imgs/ts-ast-1.png)
 
 从图中可以很清楚地看到Foo的AST表示，另外在右边的Node部分，还能查看到其AST中具体节点的信息，对于TypeScript的interface我们关心的属性名称、存在性和类型都可找到相应的字段来对应。
 
 图形化表示如下：
 
-![ts-ast-2](/assets/images/post_imgs/ts-ast-2.png)
+![interface的AST结构图形表示](/assets/images/post_imgs/ts-ast-2.png)
 
 源代码的几乎每一个细节，在AST中都有体现。让我们从上到下走马观花一下：
 
@@ -138,7 +138,7 @@ TypeScript的编译过程简单归纳如下：
 
 有了这些信息做铺垫后，可以用一张流程图来表示TypeScript的编译过程：
 
-![ts-ast-3](/assets/images/post_imgs/ts-ast-3.png)
+![TypeScript的编译过程](/assets/images/post_imgs/ts-ast-3.png)
 
 ## 4. 编写获取TypeScript interface keys的transformer
 
@@ -214,7 +214,7 @@ describe('Test transformer.', () => {
 
 接下来要进入本文最重要的部分（请原谅我前面铺垫了这么多=。=）：编写获取interface keys的代码了。在第一部分已经列出了一个包含interface的SourceFile的AST结构，不过里面的interface的结构是平坦的，没有嵌套的层级关系。而我们的目的是能够支持具有层级关系和嵌套的interface，一个有层级关系的interface的AST结构如下：
 
-![ts-ast-4](/assets/images/post_imgs/ts-ast-4.png)
+![具有层级关系的interface的AST结构](/assets/images/post_imgs/ts-ast-4.png)
 
 其实有层级关系的interface的AST只不过是在内部增加了一些节点引用而已。
 
