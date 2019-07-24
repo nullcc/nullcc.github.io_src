@@ -13,7 +13,7 @@ categories: 编程语言
 
 <!--more-->
 
-## 1. 需求和灵感
+## 需求和灵感
 
 使用过TypeScript写代码的同学都对interface这个东西不陌生，借助interface来定义一些纯值对象的类型是再简单不过了。最开始我的需求很简单，想用interface来定义一个HTTP API的response DTO，在对一个API进行测试的时候，可以验证这个API的response结构是否和我用interface定义的结构相同。
 
@@ -63,7 +63,7 @@ console.log(["a", "b"]);
 
 再进一步，我还想要得到interface各个key的类型和存在性，目前`ts-transformer-keys`也不支持。不过没关系，知道了内部的实现原理，完全可以自己写一个transformer。
 
-## 2. TypeScript的抽象语法树简介
+## TypeScript的抽象语法树简介
 
 在真正开始编写自己的transformer之前，有必要简单了解一下TypeScript的抽象语法树和TypeScript对操作抽象语法树所提供的支持。
 
@@ -104,7 +104,7 @@ interface Foo {
 
 上面AST内部的细节部分将在实际编写transformer的时候再来研究，现在只需要大致知道它的结构就可以了。
 
-## 3. TypeScript transformer简介
+## TypeScript transformer简介
 
 在介绍transformer之前需要大致了解一下TypeScript的编译过程。
 
@@ -140,7 +140,7 @@ TypeScript的编译过程简单归纳如下：
 
 ![TypeScript的编译过程](/assets/images/post_imgs/ts-ast-3.png)
 
-## 4. 编写获取TypeScript interface keys的transformer
+## 编写获取TypeScript interface keys的transformer
 
 终于到了实际写代码的环节了。在真正实现获取interface keys的transformer之前我们还有几个准备工作要做：
 
@@ -155,13 +155,13 @@ TypeScript的编译过程简单归纳如下：
 // src/transformer.ts
 import * as ts from 'typescript';
 
-export default (program: ts.Program, pluginOptions: {}): ts.TransformerFactory<ts.SourceFile> => {
+export default (program: ts.Program): ts.TransformerFactory<ts.SourceFile> => {
   return (ctx: ts.TransformationContext) => {
     return (sourceFile: ts.SourceFile): ts.SourceFile => {
       const visitor = (node: ts.Node): ts.Node => {
         return ts.visitEachChild(visitNode(node, program), visitor, ctx);
       };
-      return ts.visitEachChild(sourceFile, visitor, ctx);
+      return <ts.SourceFile> ts.visitEachChild(visitNode(sourceFile, program), visitor, ctx);
     };
   };
 }
@@ -216,6 +216,153 @@ describe('Test transformer.', () => {
 
 ![具有层级关系的interface的AST结构](/assets/images/post_imgs/ts-ast-4.png)
 
-其实有层级关系的interface的AST只不过是在内部增加了一些节点引用而已。
+我们需要嵌套地对interface的property做处理，完整的代码如下：
 
-**to be continued**
+```typescript
+import * as ts from 'typescript';
+import * as path from 'path';
+
+export default (program: ts.Program): ts.TransformerFactory<ts.SourceFile> => {
+  return (ctx: ts.TransformationContext) => {
+    return (sourceFile: ts.SourceFile): ts.SourceFile => {
+      const visitor = (node: ts.Node): ts.Node => {
+        return ts.visitEachChild(visitNode(node, program), visitor, ctx);
+      };
+      return <ts.SourceFile> ts.visitEachChild(visitNode(sourceFile, program), visitor, ctx);
+    };
+  };
+}
+
+interface InterfaceProperty {
+  name: string;
+  optional: boolean;
+}
+
+const symbolMap = new Map<string, ts.Symbol>();
+
+const visitNode = (node: ts.Node, program: ts.Program): ts.Node => {
+  if (node.kind === ts.SyntaxKind.SourceFile) {
+    (<any>node).locals.forEach((value: any, key: string) => {
+      if (!symbolMap.get(key)) {
+        symbolMap.set(key, value);
+      }
+    });
+  }
+  const typeChecker = program.getTypeChecker();
+  if (!isKeysCallExpression(node, typeChecker)) {
+    return node;
+  }
+  if (!node.typeArguments) {
+    return ts.createArrayLiteral([]);
+  }
+  const type = typeChecker.getTypeFromTypeNode(node.typeArguments[0]);
+  let properties: InterfaceProperty[] = [];
+  const symbols = typeChecker.getPropertiesOfType(type);
+  symbols.forEach(symbol => {
+    properties = [ ...properties, ...getPropertiesOfSymbol(symbol, [], symbolMap) ];
+  });
+
+  return ts.createArrayLiteral(properties.map(property => ts.createRegularExpressionLiteral(JSON.stringify(property))));
+};
+
+const getPropertiesOfSymbol = (symbol: ts.Symbol, outerLayerProperties: InterfaceProperty[], symbolMap: Map<string, ts.Symbol>): InterfaceProperty[] => {
+  let properties: InterfaceProperty[] = [];
+  let propertyPathElements = JSON.parse(JSON.stringify(outerLayerProperties.map(property => property)));
+  const property = symbol.escapedName;
+  propertyPathElements.push(property);
+  let optional = true;
+  for (let declaration of symbol.declarations) {
+    if (undefined === (<any>declaration).questionToken) {
+      optional = false;
+      break;
+    }
+  }
+  const key = <InterfaceProperty> {
+    name: propertyPathElements.join('.'),
+    optional,
+  };
+  properties.push(key);
+
+  const propertiesOfSymbol = _getPropertiesOfSymbol(symbol, propertyPathElements, symbolMap);
+  properties = [
+    ...properties,
+    ...propertiesOfSymbol,
+  ];
+
+  return properties;
+};
+
+const isOutermostLayerSymbol = (symbol: any): boolean => {
+  return symbol.valueDeclaration && symbol.valueDeclaration.symbol.valueDeclaration.type.members;
+};
+
+const isInnerLayerSymbol = (symbol: any): boolean => {
+  return symbol.valueDeclaration && symbol.valueDeclaration.symbol.valueDeclaration.type.typeName;
+};
+
+const _getPropertiesOfSymbol = (symbol: ts.Symbol, propertyPathElements: InterfaceProperty[], symbolMap: Map<string, ts.Symbol>): InterfaceProperty[] => {
+  if (!isOutermostLayerSymbol(symbol) && !isInnerLayerSymbol(symbol)) {
+    return [];
+  }
+  let properties: InterfaceProperty[] = [];
+  let members: any;
+  if ((<any>symbol.valueDeclaration).type.symbol) {
+    members = (<any>symbol.valueDeclaration).type.members.map((member: any) => member.symbol);
+  } else {
+    const propertyTypeName = (<any>symbol.valueDeclaration).type.typeName.escapedText;
+    const propertyTypeSymbol = symbolMap.get(propertyTypeName);
+    if (propertyTypeSymbol) {
+      if (propertyTypeSymbol.members) {
+        members = propertyTypeSymbol.members;
+      } else {
+        members = (<any>propertyTypeSymbol).exportSymbol.members;
+      }
+    }
+  }
+  if (members) {
+    members.forEach((member: any) => {
+      properties = [
+        ...properties,
+        ...getPropertiesOfSymbol(member, propertyPathElements, symbolMap),
+      ];
+    });
+  }
+
+  return properties;
+};
+
+const indexTs = path.join(__dirname, '../index.ts');
+const isKeysCallExpression = (node: ts.Node, typeChecker: ts.TypeChecker): node is ts.CallExpression => {
+  if (!ts.isCallExpression(node)) {
+    return false;
+  }
+  const signature = typeChecker.getResolvedSignature(node);
+  if (typeof signature === 'undefined') {
+    return false;
+  }
+  const { declaration } = signature;
+  return !!declaration
+    && !ts.isJSDocSignature(declaration)
+    && (path.join(declaration.getSourceFile().fileName) === indexTs)
+    && !!declaration.name
+    && declaration.name.getText() === 'keys';
+};
+```
+
+完整的repo可以看这里[ts-interface-keys-transformer](https://github.com/nullcc/ts-interface-keys-transformer)
+
+使用该transformer非常简单，首先安装`ttypescript`：
+
+```bash
+npm i ttypescript
+```
+
+然后在tsconfig.json的`compilerOptions`下增加如下信息：
+
+```
+"plugins": [
+  { "transform": "ts-transformer-keys/transformer" }
+]
+```
+
+在build TypeScript项目时，一般用的是`tsc`命令，现在由于使用了ttypescript，需要改用`ttsc`。
