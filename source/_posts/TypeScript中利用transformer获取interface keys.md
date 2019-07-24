@@ -367,6 +367,38 @@ npm i ttypescript
 ]
 ```
 
+例子如下：
+
+```typescript
+import { keys } from 'ts-interface-keys-transformer';
+
+interface Foo {
+  a: number;
+  b?: string;
+  c: {
+    d: number;
+    e?: boolean;
+  }
+  f: Bar;
+}
+
+interface Bar {
+  x: string;
+  y: number;
+}
+
+console.log(keys<Foo>());
+
+// output:
+// [ { name: 'a', optional: false },
+//   { name: 'b', optional: true },
+//   { name: 'c', optional: false },
+//   { name: 'c.d', optional: false },
+//   { name: 'c.e', optional: true },
+//   { name: 'f', optional: false },
+//   { name: 'f.x', optional: false },
+//   { name: 'f.y', optional: false } ]
+```
 在build TypeScript项目时，一般用的是`tsc`命令，现在由于使用了ttypescript，需要改用`ttsc`，这里有一个[ts-interface-keys-transformer-demo](https://github.com/nullcc/ts-interface-keys-transformer-demo)展示了用法。
 
 ## 参考资料
