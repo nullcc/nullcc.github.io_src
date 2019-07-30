@@ -17,9 +17,43 @@ categories: 编程语言
 
 使用过TypeScript写代码的同学都对interface这个东西不陌生，借助interface来定义一些纯值对象的类型是再简单不过了。最开始我的需求很简单，想用interface来定义一个HTTP API的response DTO，在对一个API进行测试的时候，可以验证这个API的response结构是否和我用interface定义的结构相同。
 
-遗憾的是，正常情况下用interface是办不到的。因为TypeScript的interface实际上并不存在于runtime，要理解这个问题还需要知道TypeScript针对JavaScript提供了一整套的类型辅助系统，但仅仅是辅助，最终的代码还是要转换成JavaScript来执行，JavaScript中并不存在interface这种东西，因此也就无法在runtime获得interface的keys了。
+刚开始想到可以使用ES 6的class来定义DTO，然后通过在运行时获取class的属性。这确实可以，但是用起来有点麻烦，比如下面的代码：
 
-以我的性格来说，不可能这么简单就放过这个问题，经过一番搜索，我发现了[ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)这个包，该包宣称可以获得interface的keys。仔细研究了一下，发现这个包提供一个`keys<T>()`方法，其实现原理是使用了自定义的transformer在将代码转换成JavaScript时获取了interface的信息，然后修改了调用`keys<T>()`处的AST节点信息。换句话说，这个包提供的transformer在将代码转换成JavaScript时直接从AST中找到相应interface的keys，然后创建一个包含所有keys数组，并将这个数组直接输出到转换出来的JavaScript代码中。
+```typescript
+class X {
+  a: number;
+  b: string;
+}
+console.log(Object.getOwnPropertyNames(new X())); // []
+```
+
+这还不够，需要在`X`的`constructor`里初始化一下属性：
+
+```typescript
+class X {
+  a: number;
+  b: string;
+
+  constructor() {
+    this.a = null;
+    this.b = null;
+  }
+}
+console.log(Object.getOwnPropertyNames(new X())); // [ 'a', 'b' ]
+```
+
+虽然这样做也许可行，但是很快我就否定了这种用法。我只是想简简单单地声明一个纯值对象，然后再需要的时候可以获取这些属性，结果还要写`constructor`，还要用`new`，很不优雅。其实在TypeScript中声明DTO一类的东西用interface会好一些，声明的代码简洁，还支持直接嵌套属性：
+
+```typescript
+interface X {
+  a: number;
+  b: string;
+}
+```
+
+遗憾的是，虽然用interface很简洁，但正常情况我们无法在运行时拿到interface的keys。因为TypeScript的interface实际上并不存在于runtime，要理解这个问题还需要知道TypeScript针对JavaScript提供了一整套的类型辅助系统，但仅仅是辅助，最终的代码还是要转换成JavaScript来执行。由于JavaScript中并不存在interface，因此也就无法在runtime获得interface的keys了。
+
+不过也不是完全没有希望，经过一番搜索，我发现了[ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)这个包，该包宣称可以获得interface的keys。仔细研究了一下，发现这个包提供一个`keys<T>()`方法，其实现原理是使用了自定义的transformer在将代码转换成JavaScript时获取了interface的信息，然后修改了调用`keys<T>()`处的抽象语法树(Abstract Syntax Tree, AST)节点信息。换句话说，这个包提供的transformer在将代码转换成JavaScript时直接从AST中找到相应interface的keys，然后创建一个包含所有keys数组，并将这个数组直接输出到转换出来的JavaScript代码中。
 
 举个简单的例子：
 
@@ -37,9 +71,7 @@ console.log(keys<Foo>());
 console.log(["a", "b"]);
 ```
 
-正如上面所描述的，`ts-transformer-keys`所做的只是对AST Nodes的遍历-转换，不过这种能力正是我所需要的。
-
-进一步说，由于response DTO内部经常是嵌套结构的，因此很自然想到是否可以支持嵌套interface，比如下面这种情况：
+正如上面所描述的，`ts-transformer-keys`对AST Nodes做了遍历-转换，这种能力正是我所需要的。进一步说，由于response DTO内部经常是嵌套结构的，因此很自然想到是否可以支持嵌套interface，比如下面这种情况：
 
 ```typescript
 interface Foo {
@@ -53,13 +85,11 @@ interface Bar {
 console.log(keys<Foo>());
 ```
 
-但是`ts-transformer-keys`的输出还是只有a和b：
+但是`ts-transformer-keys`的输出还是只有a和b，看来`ts-transformer-keys`尚未支持这种用法。
 
 ```javascript
 console.log(["a", "b"]);
 ```
-
-看来`ts-transformer-keys`尚未支持这种用法。
 
 再进一步，我还想要得到interface各个key的类型和存在性，目前`ts-transformer-keys`也不支持。不过没关系，知道了内部的实现原理，完全可以自己写一个transformer。
 

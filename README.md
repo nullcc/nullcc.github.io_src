@@ -3,7 +3,7 @@
 my homepage
 
 
-## develop
+## development
 
 ```bash
 $ npm i hexo -g
@@ -11,7 +11,7 @@ $ hexo server
 ```
 
 
-## deploy
+## deployment
 
 ```bash
 $ hexo g
