@@ -27,7 +27,17 @@ class X {
 console.log(Object.getOwnPropertyNames(new X())); // []
 ```
 
-这还不够，需要在`X`的`constructor`里初始化一下属性（如果只是为了拿到属性名字，直接对每个属性赋值null即可）：
+这还不够，需要对每个属性赋值：
+
+```typescript
+class X {
+  a = 0;
+  b = '';
+}
+console.log(Object.getOwnPropertyNames(new X())); // [ 'a', 'b' ]
+```
+
+或者在`X`的`constructor`里初始化一下属性（如果只是为了拿到属性名字，直接对每个属性赋值null即可）：
 
 ```typescript
 class X {
@@ -42,7 +52,7 @@ class X {
 console.log(Object.getOwnPropertyNames(new X())); // [ 'a', 'b' ]
 ```
 
-虽然这样做也许可行，但是很快我就否定了这种用法。我只是想简单地声明一种类型，然后再需要的时候可以获取这个类型的所有属性。现在不仅要写`constructor`并显式初始化所有属性，还要用`new`生成一个实例，实在不够优雅。其实在TypeScript中声明DTO一类的东西用interface会好一些，声明的代码简洁，支持直接嵌套属性，也可以声明属性的类型为其他interface，这和真实的HTTP Response Data的结构几乎一模一样：
+虽然这样做也许可行，但是很快我就否定了这种用法。我只是想简单地声明一种类型，然后再需要的时候可以获取这个类型的所有属性。现在不仅要显式初始化所有属性（在`constructor`中或者直接在class声明属性的时候赋值），还要用`new`生成一个实例，实在不够优雅。其实在TypeScript中声明DTO一类的东西用interface会好一些，声明的代码简洁，支持直接嵌套属性，也可以声明属性的类型为其他interface，这和真实的HTTP Response Data的结构几乎一模一样：
 
 ```typescript
 interface X {
