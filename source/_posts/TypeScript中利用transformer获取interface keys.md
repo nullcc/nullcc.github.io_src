@@ -27,7 +27,7 @@ class X {
 console.log(Object.getOwnPropertyNames(new X())); // []
 ```
 
-这还不够，需要在`X`的`constructor`里初始化一下属性：
+这还不够，需要在`X`的`constructor`里初始化一下属性（如果只是为了拿到属性名字，直接对每个属性赋值null即可）：
 
 ```typescript
 class X {
@@ -42,16 +42,25 @@ class X {
 console.log(Object.getOwnPropertyNames(new X())); // [ 'a', 'b' ]
 ```
 
-虽然这样做也许可行，但是很快我就否定了这种用法。我只是想简简单单地声明一个纯值对象，然后再需要的时候可以获取这些属性，结果还要写`constructor`，还要用`new`，很不优雅。其实在TypeScript中声明DTO一类的东西用interface会好一些，声明的代码简洁，还支持直接嵌套属性：
+虽然这样做也许可行，但是很快我就否定了这种用法。我只是想简单地声明一种类型，然后再需要的时候可以获取这个类型的所有属性。现在不仅要写`constructor`并显式初始化所有属性，还要用`new`生成一个实例，实在不够优雅。其实在TypeScript中声明DTO一类的东西用interface会好一些，声明的代码简洁，支持直接嵌套属性，也可以声明属性的类型为其他interface，这和真实的HTTP Response Data的结构几乎一模一样：
 
 ```typescript
 interface X {
   a: number;
-  b: string;
+  b: {
+    c: string;
+    d: Y;
+  };
+}
+interface Y {
+  u: string;
+  v: {
+    w: number;
+  }
 }
 ```
 
-遗憾的是，虽然用interface很简洁，但正常情况我们无法在运行时拿到interface的keys。因为TypeScript的interface实际上并不存在于runtime，要理解这个问题还需要知道TypeScript针对JavaScript提供了一整套的类型辅助系统，但仅仅是辅助，最终的代码还是要转换成JavaScript来执行。由于JavaScript中并不存在interface，因此也就无法在runtime获得interface的keys了。
+遗憾的是，虽然interface很适合用来描述HTTP Response Data，但正常情况下如果想在运行时获取interface的keys用来和真正的HTTP Response Data结构做对比是不行的，因为TypeScript的interface实际上并不存在于runtime，要理解这个问题需要知道TypeScript针对JavaScript提供了一整套的类型辅助系统，但仅仅是辅助，最终的代码还是要转换成JavaScript来执行。由于JavaScript中并不存在interface，因此也就无法在runtime获得interface的keys了。
 
 不过也不是完全没有希望，经过一番搜索，我发现了[ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)这个包，该包宣称可以获得interface的keys。仔细研究了一下，发现这个包提供一个`keys<T>()`方法，其实现原理是使用了自定义的transformer在将代码转换成JavaScript时获取了interface的信息，然后修改了调用`keys<T>()`处的抽象语法树(Abstract Syntax Tree, AST)节点信息。换句话说，这个包提供的transformer在将代码转换成JavaScript时直接从AST中找到相应interface的keys，然后创建一个包含所有keys数组，并将这个数组直接输出到转换出来的JavaScript代码中。
 
