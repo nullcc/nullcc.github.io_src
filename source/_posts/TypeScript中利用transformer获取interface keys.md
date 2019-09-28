@@ -157,7 +157,7 @@ interface Foo {
 
 在介绍transformer之前需要大致了解一下TypeScript的编译过程。
 
-在[TypeScript](https://github.com/microsoft/TypeScript/)的Wiki中可以找到一篇和TypeScript内部架构和编译过程有关的文章，大部分网络上涉及TypeScript编译过程的文章大都参考它：[TypScript Architectural Overview](https://github.com/microsoft/TypeScript/wiki/Architectural-Overview)。
+在[TypeScript](https://github.com/microsoft/TypeScript/)的Wiki中可以找到一篇和TypeScript内部架构和编译过程有关的文章，大部分网络上涉及TypeScript编译过程的文章大都参考它：[TypeScript Architectural Overview](https://github.com/microsoft/TypeScript/wiki/Architectural-Overview)。
 
 根据文章中的介绍，TypeScript的核心编译过程中涉及的编译组件主要有下面几个：
 

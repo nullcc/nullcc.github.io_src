@@ -1,11 +1,11 @@
 ---
 title: JavaScript法术集
-date: 2018-11-18
+date: 2019-08-12
 tags: [js]
 categories: 编程语言
 ---
 
-法术集没什么特别的，只是记录一下JavaScript常见的编码技巧。
+记录一下JavaScript常见的编程技巧。
 
 <!--more-->
 
