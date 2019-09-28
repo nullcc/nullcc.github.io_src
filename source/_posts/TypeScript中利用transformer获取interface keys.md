@@ -175,7 +175,7 @@ TypeScript的编译过程简单归纳如下：
 4. 生成Program后，TypeChecker会负责计算出不同SourceFile中的Symbol引用关系，并将`Type`赋值给`Symbol`，并在此时生成语义诊断（如果有错误的话）。
 5. 对于一个Program，会生成一个Emitter，Emitter要做的就是针对每个SourceFile生成输出(.js/.d.ts/.js.map)。
 
-另外，在TypeScript的Wiki还能找到一篇比较“残缺”的文章（估计是项目开发人员忙于具体实现懒得更新Wiki了），提到了transformer：[TypScript Compiler-Internals](https://github.com/microsoft/TypeScript/wiki/Compiler-Internals#transformer)
+另外，在TypeScript的Wiki还能找到一篇比较“残缺”的文章（估计是项目开发人员忙于具体实现懒得更新Wiki了），提到了transformer：[TypeScript Compiler-Internals](https://github.com/microsoft/TypeScript/wiki/Compiler-Internals#transformer)
 
 摘录transformer部分的内容如下，其中`translated`和`transforms`颇为微妙：
 
@@ -452,7 +452,7 @@ console.log(keys<Foo>());
 
 ## 参考资料
 
-1. [TypScript Architectural Overview](https://github.com/microsoft/TypeScript/wiki/Architectural-Overview)
-2. [TypScript Compiler-Internals](https://github.com/microsoft/TypeScript/wiki/Compiler-Internals#transformer)
+1. [TypeScript Architectural Overview](https://github.com/microsoft/TypeScript/wiki/Architectural-Overview)
+2. [TypeScript Compiler-Internals](https://github.com/microsoft/TypeScript/wiki/Compiler-Internals#transformer)
 3. [ts-transformer-keys](https://github.com/kimamula/ts-transformer-keys)
 4. [ts-ast-viewer](https://ts-ast-viewer.com/)
