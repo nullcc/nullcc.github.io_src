@@ -9,7 +9,7 @@ categories: docker
 
 <!--more-->
 
-### 查看docker基本信息
+## 查看docker基本信息
 
 `docker version`  当前docker版本的详细信息
 
@@ -18,7 +18,7 @@ categories: docker
 `docker info`     docker当前状态
 
 
-### 容器
+## 容器
 
 `docker ps`                 查看当前正在运行容器的状态
 
@@ -34,7 +34,7 @@ categories: docker
 
 `docker volume prune` 清理无主的数据卷
 
-### 镜像
+## 镜像
 
 `docker search [image]`  搜索镜像
 
@@ -62,7 +62,7 @@ categories: docker
 `docker build -t [git repo url] [user]/[repo]:[version]`  从git repo url构建
 
 
-### 运行
+## 运行
 
 `docker start [container]`      启动指定容器
 
@@ -87,14 +87,14 @@ categories: docker
 `docker run -d -p [host port]:[container port] -v [host dir]:[container dir] --name [container name] [image]:[image tag]`  -d表示以deamon模式运行容器，-p表示将宿主机端口(host port)映射到容器端口(container port)，注意-p可以多次使用来映射多个端口，-v表示将宿主机的目录(host dir)映射到容器目录(container dir)，之所以需要映射目录是因为容器一旦退出，容器层面上的存储就会消失，容器的存储层是无状态的，它本身不能用来持久化任何数据，所以需要将需要持久化的数据映射到宿主机上，--name表示容器名称，注意后面的镜像名(image name)和镜像标签(image tag)都要有
 
 
-### docker-compose
+## docker-compose
 
 `docker-compose --version`  查看docker-compose版本
 `docker-compose up`  运行compose项目
 `docker-compose up --no-deps -d [service name]` 重新创建服务并后台停止旧服务，启动新服务，且并不会影响到其所依赖的服务
 
 
-### centos 7启动、停止和重启docker
+## centos 7启动、停止和重启docker
 
 `sudo systemctl start docker` 启动docker
 
@@ -103,7 +103,7 @@ categories: docker
 `sudo systemctl restart docker` 重启docker
 
 
-### 添加源
+## 添加源
 
 修改`/etc/docker/daemon.json`：
 
