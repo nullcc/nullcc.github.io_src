@@ -152,7 +152,7 @@ http {
             proxy_pass http://stf_app;
         }
 
-        # OpenResty injects JS code to redirect browser to '/' after timeout
+        # OpenResty injects JS code to STF index page to redirect browser to '/' after timeout
         location ~ ^/$ {
             proxy_ssl_name $host;
             lua_code_cache on;
