@@ -345,6 +345,18 @@ midway的`/api/v1/devices/(.+)`API的行为：
 2. 将浏览器Cookie中的key为midwaysid的value和第一步查到的session对比，二者相等则认为验证通过，并直接转发请求到STF。
 3. 第二步中验证不通过将会导致返回403 Permission denied。
 
+## 使用时遇到的一个问题
+
+在实现了上述的所有细节后，实际使用时我发现一个问题。当用户进入到STF的设备远程控制页面后，之后的大部分操作都不再需要请求设备信息获取接口了，只需要Websocket连接就够了。由于目前我们只针对设备信息获取的API做了鉴权，假如用户一直停留在某个设备的远程控制页面不出来，就算timeout过了，还是可以继续使用的。
+
+由于STF是一个单页Web应用，针对这个问题，我想到的最简单的方案是在用户浏览器初次请求STF首页的时候，在其中注入一段特定的JS代码。这段代码是由midway生成并插入到STF的首页响应文本中的。当然，如果session不存在或者为空，则不需要注入JS代码。这段JS代码大致是这样的：
+
+```javascript
+<script>setTimeout(function(){alert('Remote control timeout!');location.href = '/';}, ${session-ttl})</script>
+```
+
+`${session-ttl}`是session在Redis中的TTL，midway会负责填入这个值，这个TTL将随着用户刷新页面的时间的不同而不同。这段代码的主要目的是在TTL时间后，弹框提示用户之前为申请远程设备控制的timeout已经到了，并强制跳转到`/`。这样就把用户带离了设备控制页面，由于此时session已过期，用户就无法再次直接进入到STF的设备控制页面了。如果想要继续控制设备，就必须去device-spy再做一次申请。
+
 ## 部署
 
 既可以将STF和midway分别部署在两台独立的服务器上，也可以将它们部署在同一台服务器上。在初次访问STF时会有一个验证步骤，浏览器会被重定向到启动STF的命令中`--public-ip`所指向的地址。如果是分开部署，由于我们的目的是让midway反向代理STF的所有流量，因此`--public-ip`的值应该是midway的地址。
