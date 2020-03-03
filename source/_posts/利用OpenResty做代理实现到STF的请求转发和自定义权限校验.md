@@ -152,6 +152,13 @@ http {
             proxy_pass http://stf_app;
         }
 
+        # OpenResty injects JS code to redirect browser to '/' after timeout
+        location ~ ^/$ {
+            proxy_ssl_name $host;
+            lua_code_cache on;
+            content_by_lua_file "lua/index.lua";
+        }
+
         # Other http requests will be proxied to STF directly
         location / {
             proxy_pass http://stf_app;
@@ -310,8 +317,8 @@ http {
 4. 25-32行声明了STF的一些服务作为upstream，`stf_app`是给HTTP API用的，`stf_websocket`是给Websocket用的。
 5. 33-36行是Lua的一个第三方库`jit-uuid`要求的声明，初始化uuid seed。
 6. 39行开始是STF App部分的声明块，声明了`/register-device`, `/deregister-device`, `/auth`, `/api/v1/devices/(.+)`和所有其他HTTP API的处理方式。在`/register-device`, `/deregister-device`和`/auth`的声明中，`content_by_lua_file`后的Lua脚本会负责处理这个API的行为。对`/api/v1/devices/(.+)`，会先用`access_by_lua_file`指定的Lua脚本检查用户是否有权限请求这个STF API，然后根据检查结果，若是验证通过就转发至STF，否则返回权限不足。其余所有HTTP请求都直接转发至STF。
-7. 97-114行是STF Websocket部分的声明块，指定了当API为`/socket.io/`时，应该将HTTP 1.1升级到Websocket，并直接转发Websocket请求到STF Websocket service。
-8. 117-233行中有一长串的listen声明，这主要是因为在远程控制Android设备时，STF会启动provider来提供Websocket服务（注意和刚才题到的STF Websocket service相区别），可以在STF启动命令中使用`--provider-min-port {port}`和`--provider-max-port {port}`来指定，这里我的参数是`--provider-min-port 7400 --provider-max-port 7499`，所以就需要有100个listen声明。值得一提的是，nginx在1.15.10中可以在listen中使用一个端口范围，详情参见[nginx listen](http://nginx.org/en/docs/stream/ngx_stream_core_module.html#listen)。不过当前最新的OpenResty基于的Nginx版本是1.15.8，所以不支持。之后如果OpenResty更新后，可以直接使用`listen 7400-7499;`这种更简洁的方式。对于provider，所有请求都应该被直接转发。
+7. 104-121行是STF Websocket部分的声明块，指定了当API为`/socket.io/`时，应该将HTTP 1.1升级到Websocket，并直接转发Websocket请求到STF Websocket service。
+8. 124-241行中有一长串的listen声明，这主要是因为在远程控制Android设备时，STF会启动provider来提供Websocket服务（注意和刚才题到的STF Websocket service相区别），可以在STF启动命令中使用`--provider-min-port {port}`和`--provider-max-port {port}`来指定，这里我的参数是`--provider-min-port 7400 --provider-max-port 7499`，所以就需要有100个listen声明。值得一提的是，nginx在1.15.10中可以在listen中使用一个端口范围，详情参见[nginx listen](http://nginx.org/en/docs/stream/ngx_stream_core_module.html#listen)。不过当前最新的OpenResty基于的Nginx版本是1.15.8，所以不支持。之后如果OpenResty更新后，可以直接使用`listen 7400-7499;`这种更简洁的方式。对于provider，所有请求都应该被直接转发。
 
 完成nginx.conf后，就轮到设计各个Lua脚本文件了。这里不打算给出所有Lua脚本的详细代码，只说大致做法。
 
@@ -345,6 +352,8 @@ midway的`/api/v1/devices/(.+)`API的行为：
 2. 将浏览器Cookie中的key为midwaysid的value和第一步查到的session对比，二者相等则认为验证通过，并直接转发请求到STF。
 3. 第二步中验证不通过将会导致返回403 Permission denied。
 
+`~ ^/$`这个块是针对一个特殊的行为的，下面会详细说明。
+
 ## 使用时遇到的一个问题
 
 在实现了上述的所有细节后，实际使用时我发现一个问题。当用户进入到STF的设备远程控制页面后，之后的大部分操作都不再需要请求设备信息获取接口了，只需要Websocket连接就够了。由于目前我们只针对设备信息获取的API做了鉴权，假如用户一直停留在某个设备的远程控制页面不出来，就算timeout过了，还是可以继续使用的。
@@ -356,6 +365,8 @@ midway的`/api/v1/devices/(.+)`API的行为：
 ```
 
 `${session-ttl}`是session在Redis中的TTL，midway会负责填入这个值，这个TTL将随着用户刷新页面的时间的不同而不同。这段代码的主要目的是在TTL时间后，弹框提示用户之前为申请远程设备控制的timeout已经到了，并强制跳转到`/`。这样就把用户带离了设备控制页面，由于此时session已过期，用户就无法再次直接进入到STF的设备控制页面了。如果想要继续控制设备，就必须去device-spy再做一次申请。
+
+我把对这个行为的控制放到`lua/index.lua`中。
 
 ## 部署
 
