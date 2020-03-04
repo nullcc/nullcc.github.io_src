@@ -328,7 +328,8 @@ midway的`/register-device`API的行为（参数code、 timeout和device）：
 
 1. 在Redis中设置hash，key: code, value: session，并设置过期时间为timeout。
 2. 在Redis中设置hash，key: device, value: session，并设置过期时间为timeout。
-3. SSH到STF的服务器上（会使用nginx.conf文件中声明的那三个环境变量），然后执行`adb connect {device_ip}:{adb_port}`。
+3. 在Redis中设置hash，key: session, value: 1
+4. SSH到STF的服务器上（会使用nginx.conf文件中声明的那三个环境变量），然后执行`adb connect {device_ip}:{adb_port}`。
 
 ### 用户浏览器授权
 
@@ -352,7 +353,16 @@ midway的`/api/v1/devices/(.+)`API的行为：
 2. 将浏览器Cookie中的key为midwaysid的value和第一步查到的session对比，二者相等则认为验证通过，并直接转发请求到STF。
 3. 第二步中验证不通过将会导致返回403 Permission denied。
 
-`~ ^/$`这个块是针对一个特殊的行为的，下面会详细说明。
+下面这个块是针对一个特殊的行为的，下面会详细说明：
+
+```
+# OpenResty injects JS code to STF index page to redirect browser to '/' after timeout
+location ~ ^/$ {
+    proxy_ssl_name $host;
+    lua_code_cache on;
+    content_by_lua_file "lua/index.lua";
+}
+```
 
 ## 使用时遇到的一个问题
 
