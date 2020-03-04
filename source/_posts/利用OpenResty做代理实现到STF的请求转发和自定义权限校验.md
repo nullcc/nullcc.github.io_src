@@ -364,7 +364,7 @@ location ~ ^/$ {
 }
 ```
 
-## 使用时遇到的一个问题
+## 使用时遇到的问题
 
 在实现了上述的所有细节后，实际使用时我发现一个问题。当用户进入到STF的设备远程控制页面后，之后的大部分操作都不再需要请求设备信息获取接口了，只需要Websocket连接就够了。由于目前我们只针对设备信息获取的API做了鉴权，假如用户一直停留在某个设备的远程控制页面不出来，就算timeout过了，还是可以继续使用的。
 
@@ -377,6 +377,18 @@ location ~ ^/$ {
 `${session-ttl}`是session在Redis中的TTL，midway会负责填入这个值，这个TTL将随着用户刷新页面的时间的不同而不同。这段代码的主要目的是在TTL时间后，弹框提示用户之前为申请远程设备控制的timeout已经到了，并强制跳转到`/`。这样就把用户带离了设备控制页面，由于此时session已过期，用户就无法再次直接进入到STF的设备控制页面了。如果想要继续控制设备，就必须去device-spy再做一次申请。
 
 我把对这个行为的控制放到`lua/index.lua`中。
+
+还有一个地方值得说一下，STF默认缓存了首页文档，在初次请求后直到页面缓存失效，当请求首页的HTML页面时都会返回304 Not Modified。这个缓存效果是我们不想要的。这是因为注入到STF首页的JS代码的setTimeout的超时时间和session的TTL有关，因此我们肯定希望每次都返回由midway生成的代码。一个简单的做法是在`index.lua`中加入：
+
+```lua
+ngx.header["Cache-Control"] = "no-store"
+```
+
+另外，我们需要让response headers中的"Content-Length"符合我们生成的文档的长度，所以别忘了加入：
+
+```lua
+ngx.header["Content-Length"] = string.len(body)
+```
 
 ## 部署
 
