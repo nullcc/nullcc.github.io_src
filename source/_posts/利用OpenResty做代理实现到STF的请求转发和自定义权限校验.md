@@ -328,7 +328,7 @@ midway的`/register-device`API的行为（参数code、 timeout和device）：
 
 1. 在Redis中设置hash，key: code, value: session，并设置过期时间为timeout。
 2. 在Redis中设置hash，key: device, value: session，并设置过期时间为timeout。
-3. 在Redis中设置hash，key: session, value: 1
+3. 在Redis中设置hash，key: session, value: 1。
 4. SSH到STF的服务器上（会使用nginx.conf文件中声明的那三个环境变量），然后执行`adb connect {device_ip}:{adb_port}`。
 
 ### 用户浏览器授权
