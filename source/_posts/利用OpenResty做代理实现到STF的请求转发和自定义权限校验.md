@@ -103,7 +103,7 @@ http {
     # STF app
     server {
         listen 21000;
-        server_name kamino.lab.rcch.ringcentral.com;
+        server_name ${SERVER_NAME};
         resolver 127.0.0.11;
 
         # device-spy requests this API to register device with:
@@ -168,7 +168,7 @@ http {
     # STF websocket
     server {
         listen 7110;
-        server_name kamino.lab.rcch.ringcentral.com;
+        server_name ${SERVER_NAME};
         resolver 127.0.0.11;
 
         # STF websocket requests will be proxied to STF websocket service directly
@@ -288,7 +288,7 @@ http {
         listen 7497;
         listen 7498;
         listen 7499;
-        server_name kamino.lab.rcch.ringcentral.com;
+        server_name ${SERVER_NAME};
         resolver 127.0.0.11;
 
         # Requests to STF providers will be proxied to STF providers directly
@@ -307,7 +307,7 @@ http {
 }
 ```
 
-注意，需要把这个文件中的${STF_IP}换成实际的STF的IP，这里做展示用因此隐藏了这个IP。
+注意，需要把这个文件中的${STF_IP}和${SERVER_NAME}换成实际的STF的IP和实际server的IP，这里做展示用因此隐藏了这个IP。
 
 这个nginx.conf内容比较多，我们从上往下看。
 
