@@ -307,7 +307,7 @@ http {
 }
 ```
 
-注意，需要把这个文件中的${STF_IP}和${SERVER_NAME}换成实际的STF的IP和实际server的IP，这里做展示用因此隐藏了这个IP。
+注意，需要把这个文件中的`${STF_IP}`和`${SERVER_NAME}`换成实际的STF的IP和实际server的IP，这里做展示用因此隐藏了这个IP。
 
 这个nginx.conf内容比较多，我们从上往下看。
 
