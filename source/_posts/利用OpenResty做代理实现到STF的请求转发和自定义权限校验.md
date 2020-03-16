@@ -48,12 +48,12 @@ OpenResty是基于nginx和Lua的高性能Web平台，开发者可以在OpenResty
 详细解释一下各个步骤的行为：
 
 1. 用户在device-spy上申请对某台安卓机器的控制，并指定timeout。
-2. device-spy锁定这台设备，并生成一个code（为了安全性这个code是有需要加密的，在midway端会解密，防止伪造，但简单起见可以先不实现）
-3. device-spy向midway注册设备（携带参数code, timeout，device_ip和adb_port）
-4. midway用uuid生成一个session key，并在redis里存放code:session（设置timeout过期时间）和device:session（设置timeout过期时间）
-5. device-spy重定向浏览器到midway的/auth?code=xxx上
+2. device-spy锁定这台设备，并生成一个code（为了安全性这个code是有需要加密的，在midway端会解密，防止伪造，但简单起见可以先不实现）。
+3. device-spy向midway注册设备（携带参数code, timeout，device_ip和adb_port）。
+4. midway用uuid生成一个session key，并在redis里存放code:session（设置timeout过期时间）和device:session（设置timeout过期时间）。
+5. device-spy重定向浏览器到midway的/auth?code=xxx上。
 6. midway验证这个code，如果这个code已经注册，就把对应的session key作为cookie设置在浏览器端。
-7-10. midway会反向代理所有到STF的HTTP和Websocket请求。特别地，只有当浏览器访问STF的/api/v1/devices/{device_ip}:{adb_port})这个API时，midway才会做权限校验，看看用户session是否有权限操作这台设备，如果不可以就返回403，验证通过则直接proxy_pass到STF，最后返回响应。只对这个API做权限校验就可以了，因为这个远程操控制某台设备之前必须请求该API获取相关信息后建立websocket连接。
+7-10. midway会反向代理所有到STF的HTTP和Websocket请求。特别地，只有当浏览器访问STF的/api/v1/devices/{device_ip}:{adb_port}这个API时，midway才会做权限校验，看看用户session是否有权限操作这台设备，如果不可以就返回403，验证通过则直接proxy_pass到STF，最后返回响应。只对这个API做权限校验就可以了，因为这个远程操控制某台设备之前必须请求该API获取相关信息后建立websocket连接。
 8. (11) 用户在device-spy上主动注销设备，device-spy会请求midway的注销设备API。
 
 ## 实现
