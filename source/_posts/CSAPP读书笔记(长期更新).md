@@ -1,5 +1,5 @@
 ---
-title: CSAPP读书笔记(长期更新)
+title: CSAPP读书笔记(书已看完，剩下的读书笔记都在心里（逃。。)
 date: 2019-09-29
 tags: [Basics]
 categories: 读书笔记
