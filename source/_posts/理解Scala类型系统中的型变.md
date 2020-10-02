@@ -215,8 +215,7 @@ error: type mismatch;
 val animalHunter: Hunter[Animal] = bearHunter
 ```
 
-逆变理解起来不如协变直观。根据逆变的逻辑，在这段代码中，熊(Bear)是一种动物(Animal)，那么动物猎人(Hunter[Animal])是一种
-猎熊者(Hunter[Bear])。这个逻辑好像有点违反常识，不是应该说猎熊者(Hunter[Bear])是一种动物猎人(Hunter[Animal])吗？但是如果套用里氏替换原则中的概念：在需要基类的地方，都可以用子类替换，但反过来则不行。
+逆变理解起来不如协变直观。根据逆变的逻辑，在这段代码中，熊(Bear)是一种动物(Animal)，那么动物猎人(Hunter[Animal])是一种猎熊者(Hunter[Bear])。这个逻辑好像有点违反常识，不是应该说猎熊者(Hunter[Bear])是一种动物猎人(Hunter[Animal])吗？但是如果套用里氏替换原则中的概念：在需要基类的地方，都可以用子类替换，但反过来则不行。
 
 逆变的道理也是一样的，在需要Hunter[Bear]的地方，我们用一个Hunter[Animal]去替代是可以的，因为动物猎人掌握狩猎一切动物的技能，这当然也包括猎熊。但是反过来，在需要Hunter[Animal]的地方，我们无法用Hunter[Bear]去替代，因为动物猎人是全能的，猎熊者只知道如何狩猎熊，如果换成麋鹿，Hunter[Bear]就不灵了。
 
