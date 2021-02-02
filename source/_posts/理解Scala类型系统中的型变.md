@@ -77,7 +77,7 @@ anySignalProcessor.process(bar) // OK
 回到刚才那段编译报错的代码，应该改为：
 
 ```scala
-ass SignalProcessor[-T] {
+class SignalProcessor[-T] {
   def process(in: T): Unit = {
     println(in)
   }
