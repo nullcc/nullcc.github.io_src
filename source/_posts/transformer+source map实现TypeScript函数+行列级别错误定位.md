@@ -279,3 +279,7 @@ _ts-err-hunter-file-fn-range.json:
 ```
 
 有了上面这些信息，当运行时报错时，我们就可以通过error stack获得出错点的JS文件路径和行列号。然后使用source map查找到对应TS文件的路径和行列号。再计算出TS文件的行列号对应的位置，并查询该位置在`_ts-err-hunter-file-fn-range.json`里的对应文件中落在哪个函数声明区间，这个区间的起止位置就是这个出错点在TS文件中函数的完整区间了。最后直接把这个区间的代码打印出来可以了。具体的查找过程不复杂，就不赘述了。
+
+## 最后
+
+我写了[ts-err-hunter](https://github.com/nullcc/ts-err-hunter)这个package来实现整个过程，欢迎参考。
