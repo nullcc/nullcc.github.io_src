@@ -280,6 +280,71 @@ _ts-err-hunter-file-fn-range.json:
 
 有了上面这些信息，当运行时报错时，我们就可以通过error stack获得出错点的JS文件路径和行列号。然后使用source map查找到对应TS文件的路径和行列号。再计算出TS文件的行列号对应的位置，并查询该位置在`_ts-err-hunter-file-fn-range.json`里的对应文件中落在哪个函数声明区间，这个区间的起止位置就是这个出错点在TS文件中函数的完整区间了。最后直接把这个区间的代码打印出来可以了。具体的查找过程不复杂，就不赘述了。
 
-## 最后
+## ts-err-hunter
 
-我写了[ts-err-hunter](https://github.com/nullcc/ts-err-hunter)这个package来实现整个过程，欢迎参考。
+我写了[ts-err-hunter](https://github.com/nullcc/ts-err-hunter)这个package来实现整个过程。
+
+为了使用`ts-err-hunter`, 需要将下面的代码加入到项目的入口文件里：
+
+```typescript
+import { register } from "ts-err-hunter";
+
+register();
+```
+
+我们假设项目的源码目录是`src`，且`tsconfig.json`文件在项目根目录。创建一个名为`compile.ts`的文件，代码如下：
+
+```typescript
+import { compile } from "ts-err-hunter";
+
+compile("src", "tsconfig.json");
+```
+
+然后执行这个文件：
+
+```shell
+$ ts-node compile.ts
+```
+
+执行上面的操作后，相当于使用项目的`tsconfig.json`配置文件来编译源代码，可以看到引入`ts-err-hunter`对源项目的编译过程影响并不大。
+
+为了展示效果，假设我们有这么一个TS文件：
+
+```typescript
+import fs from "fs";
+import { register } from "ts-err-hunter";
+
+register();
+
+const foo = () => {
+  // comments...
+  fs.readFileSync("xxx.json");
+}
+
+(async () => {
+  try {
+    foo();
+  } catch (err) {
+    const sourceCode = await err.getSourceCode();
+    if (sourceCode) {
+      console.log(`source file: ${sourceCode.fileName}`);
+      console.log(sourceCode.content);
+    }
+    throw err;
+  }
+})();
+```
+
+使用上面的方法编译并运行这些代码，我们将得到出错点的详细信息：
+
+```
+source file: /absolute/path/to/TS/code.ts
+>  6 const foo = () => {
+>  7   // comments...
+>  8   fs.readFileSync("xxx.json");
+          ^ ------------> ENOENT: no such file or directory, open 'xxx.json'
+
+>  9 }
+```
+
+这就是完整的过程和效果啦！
