@@ -85,7 +85,7 @@ export default (program: ts.Program, fileFnRangeMap: any): ts.TransformerFactory
 }
 ```
 
-上面的代码实际是一个访问者模式的典型用法，我们不用关系TS正在编译代码时具体是怎么遍历AST的，我们只需要提供一个方法，告诉TS在访问到每个node时该做什么。`visitNode`方法需要我们自己实现。另外你可能会好奇`fileFnRangeMap`是做什么的，可以暂时先忽略这个参数。
+上面的代码实际是一个访问者模式的典型用法，我们不用关心TS在编译代码时具体是怎么遍历AST的，我们只需要提供一个方法，告诉TS在访问到每个node时该做什么。`visitNode`方法需要我们自己实现。另外你可能会好奇`fileFnRangeMap`是做什么的，可以暂时先忽略这个参数。
 
 再来看`visitNode`方法：
 
@@ -128,7 +128,7 @@ const isVariableDeclarationWithArrowFunction = (node: ts.Node): boolean => {
 };
 ```
 
-在TS遍历AST node时会对每个node调用该方法，首先判断当前node是否是`SourceFile` node，如果是就从中提取出这个文件的名称，并设置`fileFnRangeMap`中以这个文件名为key的value为一个空数组，我们不打算对node做任何操作，直接返回它。如果不是`SourceFile` node，就判断它是否是一个函数声明node，函数声明node有以下几种：
+在TS遍历AST node时会对每个node调用该方法，首先判断当前node是否是`SourceFile` node，如果是就从中提取出这个文件的名称，并设置`fileFnRangeMap`中以这个文件名为key的value为一个空数组，我们不打算对node做任何操作，因此直接返回它。如果不是`SourceFile` node，就判断它是否是一个函数声明node，函数声明node有以下几种：
 
 * 使用function声明的函数
 
@@ -173,11 +173,11 @@ export class Calc {
 ts.isFunctionDeclaration(node)
 ```
 
-如果是上述几种我们关系的函数声明node，需要获取下它们在TS源码里的起止位置，并push到`fileFnRangeMap[$sourceFileName]`中。这里我们还是不会对node做任何操作，直接返回即可。
+如果是上述几种我们关心的函数声明node，需要获取下它们在TS源码里的起止位置，并push到`fileFnRangeMap[$sourceFileName]`中。这里我们还是不会对node做任何操作，直接返回即可。
 
-回顾这部分的内容，这个transformer帮助我们在TS遍历AST树时记录下我们所关心的函数声明node的起止位置，并把这些信息记录到`fileFnRangeMap`中以相应文件名为key的数组里。
+回顾这部分的内容，这个transformer帮助我们在TS遍历AST时记录下我们所关心的函数声明node的起止位置，并把这些信息记录到`fileFnRangeMap`中以相应文件名为key的数组里。
 
-到此，我们已经准备好了TS源码中所有函数声明的信息，之后把它输出到一个外部文件就行了。为了输出到外部文件，有一种做法是在遍历到每个函数声明node时把`fileFnRangeMap`字符串到文件，这么做可以但效率太低，因为每遍历到一个函数声明node都要写一次文件。 其实还可以控制整个TS编译过程，使用一个`compile.ts`文件来控制：
+到此，我们已经准备好了TS源码中所有函数声明的信息，之后把它输出到一个外部文件就行了。为了输出到外部文件，有一种做法是在遍历到每个函数声明node时把`fileFnRangeMap`字符串化并存储到文件，这么做可以但效率太低，因为每遍历到一个函数声明node都要写一次文件。 其实我们可以在外部实现这个操作，这就需要控制整个TS编译过程，使用一个`compile.ts`文件来控制：
 
 ```typescript
 // compile.ts
