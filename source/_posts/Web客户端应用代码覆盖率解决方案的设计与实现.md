@@ -103,7 +103,7 @@ Web客户端应用的代码覆盖率解决方案中一个很重要的部分就�
 
 #### UT 覆盖率数据
 
-对于 UT 覆盖率数据，我们常用 [Jest](https://jestjs.io/) 运行 UT 用例，然后生成 [Istanbul](https://istanbul.js.org/) 代码覆盖率报告，这个比较容易处理。因此我们只需要将这些现成的 UT 代码覆盖率数据上传到后端即可。在实践中一班是在 Jenkins pipeline 中运行 UT，只需要使用 curl 命令即可上传至后端。这里不需要引入专门的代码覆盖率客户端来收集和上传数据。
+对于 UT 覆盖率数据，我们常用 [Jest](https://jestjs.io/) 运行 UT 用例，然后生成 [Istanbul](https://istanbul.js.org/) 代码覆盖率报告，这个比较容易处理。因此我们只需要将这些现成的 UT 代码覆盖率数据上传到后端即可。在实践中一般是在 Jenkins pipeline 中运行 UT，只需要使用 curl 命令即可上传至后端。这里不需要引入专门的代码覆盖率客户端来收集和上传数据。
 
 #### AT 覆盖率数据
 
