@@ -207,9 +207,11 @@ Coverage Aggregation Service 负责将每个原始覆盖率数据转换为 Istan
 
 我们通过 CDP 收集浏览器覆盖率：
 
-![通过CDP收集浏览器覆盖率](/assets/images/post_imgs/web_application_coverage_solution_4.png)
+![通过CDP收集浏览器上的JS代码覆盖率](/assets/images/post_imgs/web_application_coverage_solution_4.png)
 
 Electron 应用程序在 Node.js 上运行，我们需要使用环境变量 [NODE_V8_COVERAGE=dir](https://nodejs.org/api/cli.html#node_v8_coveragedir) 启动Electron应用程序。通过设置此环境变量，Node.js 中的 V8 引擎在运行时会收集 coverage，并在进程退出时将 V8 coverage 输出到给定目录。
+
+![在Electron应用上收集JS代码覆盖率](/assets/images/post_imgs/web_application_coverage_solution_7.png)
 
 现在我们已经完成了从浏览器和 Electron 应用程序收集覆盖率的详细设计。让我们考虑一下上一节中提到的问题：如何获取源代码？
 
